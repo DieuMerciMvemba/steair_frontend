@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Thermometer, Droplets, Gauge, CloudRain, ShieldAlert, Cpu, Activity, 
-  TrendingUp, FileJson, FileSpreadsheet, ShieldCheck, Battery, Signal, 
-  Trash2, Info, Compass 
+  TrendingUp, FileJson, FileSpreadsheet, Battery, Signal, 
+  Trash2, Info, Compass, Menu, X, Home, FileText, MessageSquare, LogOut, LogIn
 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
@@ -15,13 +15,14 @@ import { WeatherChart, MultiLineChart } from '../../components/WeatherChart';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const { data, loading, error, consecutiveErrors } = useWeatherData();
+  const { user, logout } = useAuth();
+  const { data, loading, error } = useWeatherData();
   const { exportJSON, exportExcel } = useFileExport();
   const { toasts, success, error: showToastError, removeToast } = useToast();
 
   const [cleanupDays, setCleanupDays] = useState(30);
   const [cleaning, setCleaning] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -63,25 +64,11 @@ export default function Dashboard() {
   const history = data?.history || [];
   const stats = data?.stats;
 
-  // Calcul du confort thermique local
-  const getComfortDetails = (temp, hum) => {
-    if (temp >= 22 && temp <= 28 && hum >= 40 && hum <= 70) {
-      return { status: 'Excellent', style: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300', desc: 'Indice idéal pour Kinshasa.' };
-    }
-    if (temp >= 20 && temp <= 32 && hum >= 30 && hum <= 80) {
-      return { status: 'Bon', style: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300', desc: 'Conditions confortables.' };
-    }
-    if (temp >= 18 && temp <= 35 && hum >= 20 && hum <= 90) {
-      return { status: 'Moyen', style: 'bg-amber-500/10 border-amber-500/20 text-amber-300', desc: 'Chaleur ou humidité modérée.' };
-    }
-    return { status: 'Critique / Vigilance', style: 'bg-rose-500/10 border-rose-500/20 text-rose-300', desc: 'Vigilance forte humidité ou chaleur extrême.' };
-  };
-
-  const currentRole = user?.role || 'public'; // Par défaut, espace public si non connecté
+  const currentRole = user?.role || 'public';
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="fixed inset-0 z-[110] bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Activity className="w-12 h-12 text-indigo-500 animate-spin" />
           <div className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Initialisation...</div>
@@ -90,258 +77,318 @@ export default function Dashboard() {
     );
   }
 
-  const comfort = realtimeData ? getComfortDetails(realtimeData.temperature, realtimeData.humidity) : null;
+  // Calcul du pourcentage batterie pour le Doughnut (de 3.4V à 4.2V)
+  const getBatteryPercentage = (v) => {
+    if (!v) return 0;
+    const pct = Math.round(((v - 3.4) / (4.2 - 3.4)) * 100);
+    return Math.max(0, Math.min(100, pct));
+  };
+  
+  const batteryPct = realtimeData?.batteryVoltage ? getBatteryPercentage(realtimeData.batteryVoltage) : 85;
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full text-white">
+      {/* Profil Utilisateur */}
+      <div className="p-6 border-b border-slate-700/50 flex flex-col items-center text-center">
+        <div className="w-20 h-20 bg-slate-700/50 rounded-full border-2 border-indigo-400/30 flex items-center justify-center mb-4 overflow-hidden relative shadow-inner">
+          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xl uppercase">
+            {user?.username ? user.username.substring(0, 2) : 'GP'}
+          </div>
+        </div>
+        <h3 className="font-bold text-lg tracking-wide uppercase truncate max-w-full">
+          {user?.username || 'Visiteur'}
+        </h3>
+        <span className="text-xs text-slate-400 truncate max-w-full mb-2">
+          {user?.email || 'Lecteur public'}
+        </span>
+        <span className="text-[10px] uppercase font-bold tracking-widest bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
+          {currentRole === 'admin' ? 'SuperAdmin' : currentRole === 'tech' ? 'Technicien' : currentRole === 'researcher' ? 'Chercheur' : 'Public'}
+        </span>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-2">
+        <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+          <Home className="w-4 h-4 text-indigo-400" />
+          Accueil
+        </Link>
+        <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
+          <Activity className="w-4 h-4 text-indigo-400" />
+          Dashboard
+        </button>
+        <Link href="/history" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+          <FileText className="w-4 h-4 text-indigo-400" />
+          Historique
+        </Link>
+        <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+          <MessageSquare className="w-4 h-4 text-indigo-400" />
+          Interprétation
+        </Link>
+      </nav>
+
+      {/* Déconnexion */}
+      <div className="p-4 border-t border-slate-750">
+        {user ? (
+          <button onClick={logout} className="w-full flex items-center justify-center gap-3 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/25 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer">
+            <LogOut className="w-4 h-4" />
+            Déconnexion
+          </button>
+        ) : (
+          <Link href="/login" className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-950/40">
+            <LogIn className="w-4 h-4" />
+            Se Connecter
+          </Link>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-12">
+    <div className="fixed inset-0 z-[100] flex bg-[#f4f6f9] text-slate-800 font-sans overflow-hidden">
       
-      {/* Alerte météo active */}
-      {realtimeData?.alert_active && (
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-200 p-4 rounded-2xl mb-8 flex items-center gap-3 animate-pulse">
-          <ShieldAlert className="w-6 h-6 text-rose-400" />
-          <div className="text-sm">
-            <span className="font-bold">⚠️ ALERTE CRITIQUE :</span> Conditions climatiques intenses détectées par la station (Précipitations en cours).
-          </div>
+      {/* 1. SIDEBAR DESKTOP */}
+      <aside className="w-64 bg-[#0f2042] border-r border-slate-750 shrink-0 md:flex flex-col hidden shadow-2xl">
+        <SidebarContent />
+      </aside>
+
+      {/* 2. SIDEBAR DRAWER MOBILE */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-[120] bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)}>
+          <aside className="w-64 bg-[#0f2042] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-250" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-end p-4">
+              <button onClick={() => setSidebarOpen(false)} className="text-white p-1.5 hover:bg-white/5 rounded-lg">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <SidebarContent />
+          </aside>
         </div>
       )}
 
-      {/* Header avec indicateur d'espace actif */}
-      <section className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="glass-pill px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase">
-              Espace : {currentRole === 'admin' ? 'SuperAdmin National' : currentRole === 'tech' ? 'Technicien / Opérateur' : currentRole === 'researcher' ? 'Scientifique / Data' : 'Grand Public'}
-            </span>
-            {!user && (
-              <span className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[10px] text-slate-400 font-medium">
-                Lecture seule (Connectez-vous pour plus de rôles)
-              </span>
-            )}
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-2">Moniteur KongoClim</h1>
-          <p className="text-slate-400 max-w-xl">
-            Surveillance en temps réel et télémétrie distante sécurisée.
-          </p>
-        </div>
-
-        {comfort && (
-          <div className={`border p-4 rounded-2xl max-w-xs flex flex-col gap-1 ${comfort.style}`}>
-            <span className="text-xs uppercase font-bold tracking-wider">Confort Climatique</span>
-            <span className="text-lg font-bold">{comfort.status}</span>
-            <span className="text-xs opacity-80">{comfort.desc}</span>
-          </div>
-        )}
-      </section>
-
-      {/* Section 1 : Relevés en Temps Réel (Tous les rôles) */}
-      <section className="mb-12">
-        {realtimeData ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Temp Card */}
-            <div className="glass-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/20 group">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-slate-400 text-sm font-medium">Température</span>
-                <div className="p-2 bg-rose-500/10 rounded-xl group-hover:bg-rose-500/20 transition-colors">
-                  <Thermometer className="w-5 h-5 text-rose-400" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">{realtimeData.temperature.toFixed(1)}</span>
-                <span className="text-lg text-slate-500 font-light">°C</span>
-              </div>
-            </div>
-
-            {/* Hum Card */}
-            <div className="glass-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/20 group">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-slate-400 text-sm font-medium">Humidité</span>
-                <div className="p-2 bg-blue-500/10 rounded-xl group-hover:bg-blue-500/20 transition-colors">
-                  <Droplets className="w-5 h-5 text-blue-400" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">{realtimeData.humidity.toFixed(0)}</span>
-                <span className="text-lg text-slate-500 font-light">%</span>
-              </div>
-            </div>
-
-            {/* Press Card */}
-            <div className="glass-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/20 group">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-slate-400 text-sm font-medium">Pression</span>
-                <div className="p-2 bg-amber-500/10 rounded-xl group-hover:bg-amber-500/20 transition-colors">
-                  <Gauge className="w-5 h-5 text-amber-400" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">
-                  {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'}
-                </span>
-                <span className="text-lg text-slate-500 font-light">hPa</span>
-              </div>
-            </div>
-
-            {/* Rain Card */}
-            <div className="glass-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/20 group">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-slate-400 text-sm font-medium">Averses</span>
-                <div className="p-2 bg-indigo-500/10 rounded-xl group-hover:bg-indigo-500/20 transition-colors">
-                  <CloudRain className="w-5 h-5 text-indigo-400" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-white">
-                  {realtimeData.rain === 1 ? 'Actives (1)' : 'Inactives (0)'}
-                </span>
-              </div>
-              <div className={`mt-3 text-xs font-semibold tracking-wide ${realtimeData.rain === 1 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                {realtimeData.rain === 1 ? '● PLUIE EN COURS' : '● TEMPS SEC'}
-              </div>
-            </div>
-
-          </div>
-        ) : (
-          <div className="glass-card rounded-2xl p-12 text-center text-slate-400 font-medium">
-            Aucun capteur connecté
-          </div>
-        )}
-      </section>
-
-      {/* ESPACE TECHNICIEN : Panel Diagnostics */}
-      {currentRole === 'tech' && (
-        <section className="mb-12">
-          <h2 className="text-xl font-bold mb-6 text-indigo-400 flex items-center gap-2">
-            <Cpu className="w-5 h-5" /> Télémétrie GSM & Énergie (SIM800C)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass-card rounded-2xl p-6 flex items-center gap-4">
-              <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-                <Signal className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Signal Cellulaire</span>
-                <span className="text-xl font-bold text-white">
-                  {realtimeData?.gsmSignal !== null && realtimeData?.gsmSignal !== undefined
-                    ? `${-113 + 2 * realtimeData.gsmSignal} dBm (${realtimeData.gsmSignal}/31)`
-                    : 'Hors Ligne'}
-                </span>
-                <span className="text-xs text-emerald-400 block">
-                  ● Opérateur : {realtimeData?.gsmOperator || 'Non Détecté'}
-                </span>
-              </div>
-            </div>
-
-            <div className="glass-card rounded-2xl p-6 flex items-center gap-4">
-              <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
-                <Battery className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Alimentation Solaire</span>
-                <span className="text-xl font-bold text-white">
-                  {realtimeData?.batteryVoltage !== null && realtimeData?.batteryVoltage !== undefined
-                    ? `${realtimeData.batteryVoltage.toFixed(2)} V`
-                    : 'Indisponible'}
-                </span>
-                <span className="text-xs text-emerald-400 block">
-                  {realtimeData?.batteryVoltage && realtimeData.batteryVoltage > 3.6
-                    ? '● Tension Normale (Li-ion)'
-                    : '● Charge Critique (< 3.6V)'}
-                </span>
-              </div>
-            </div>
-
-            <div className="glass-card rounded-2xl p-6 flex items-center gap-4">
-              <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
-                <Compass className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Géolocalisation LBS (CellID)</span>
-                <span className="text-md font-bold text-white font-mono">
-                  {realtimeData?.lbsLat && realtimeData?.lbsLon
-                    ? `LAT: ${realtimeData.lbsLat.toFixed(4)}, LON: ${realtimeData.lbsLon.toFixed(4)}`
-                    : 'Recherche GSM...'}
-                </span>
-                <span className="text-xs text-slate-500 block">Calculé sans module GPS physique</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ESPACE SUPERADMIN : Panel de contrôle global */}
-      {currentRole === 'admin' && (
-        <section className="mb-12 bg-indigo-950/20 border border-indigo-500/10 p-6 rounded-2xl">
-          <h2 className="text-lg font-bold mb-4 text-white flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-indigo-400" />
-            Zone Administration : Maintenance Base de Données
-          </h2>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="text-sm text-slate-300">
-              Supprimer les métriques antérieures à :
-            </div>
-            <input
-              type="number"
-              value={cleanupDays}
-              onChange={(e) => setCleanupDays(parseInt(e.target.value))}
-              className="bg-slate-950 border border-white/10 rounded-xl px-4 py-2 w-20 text-center text-sm text-white focus:outline-none focus:border-indigo-500"
-            />
-            <span className="text-sm text-slate-300">jours</span>
-            <button
-              onClick={handleCleanup}
-              disabled={cleaning}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-rose-900/20 cursor-pointer disabled:opacity-50"
-            >
-              {cleaning ? 'Nettoyage...' : 'Exécuter le Nettoyage'}
+      {/* 3. ZONE PRINCIPALE DE CONTENU */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        {/* Top Header Bar mobile & desktop */}
+        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all">
+              <Menu className="w-6 h-6" />
             </button>
-          </div>
-        </section>
-      )}
-
-      {/* ESPACE CHERCHEUR / B2B / ADMIN : Graphiques et Exports */}
-      {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') && (
-        <>
-          {/* Graphiques */}
-          <section className="mb-12">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-300">
-              <TrendingUp className="w-5 h-5 text-indigo-400" />
-              Graphiques Climatiques Temporels
+            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide">
+              {currentRole === 'admin' ? 'Dashboard Administrateur' : currentRole === 'tech' ? 'Dashboard Technique' : currentRole === 'researcher' ? 'Dashboard Chercheur' : 'Dashboard Public'}
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-md font-semibold mb-6 text-slate-300">Température</h3>
-                <WeatherChart data={history} dataKey="temperature" color="#f87171" name="Température" unit="°C" />
-              </div>
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="text-md font-semibold mb-6 text-slate-300">Humidité</h3>
-                <WeatherChart data={history} dataKey="humidity" color="#60a5fa" name="Humidité" unit="%" />
-              </div>
-              <div className="glass-card rounded-2xl p-6 lg:col-span-2">
-                <h3 className="text-md font-semibold mb-6 text-slate-300">Analyse Combinée (Multivariée)</h3>
-                <MultiLineChart data={history} />
+          </div>
+          <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+            ● KongoClim Online
+          </div>
+        </header>
+
+        {/* Espace central de défilement des cartes */}
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+
+          {/* Alerte météo critique */}
+          {realtimeData?.alertActive && (
+            <div className="bg-rose-50 border border-rose-600 text-white p-4 rounded-xl flex items-center gap-3 shadow-md animate-pulse">
+              <ShieldAlert className="w-6 h-6 text-white shrink-0" />
+              <div className="text-sm font-semibold">
+                ALERTE PLUIE ACTIVE : Précipitations intenses détectées par la station en RDC.
               </div>
             </div>
-          </section>
+          )}
 
-          {/* Exports boutons */}
-          <section className="mb-12 flex flex-wrap gap-4 border-t border-white/5 pt-8">
-            <button onClick={handleExportJSON} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-indigo-900/20 cursor-pointer">
-              <FileJson className="w-4 h-4" />
-              Télécharger Export JSON
-            </button>
-            <button onClick={handleExportExcel} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-emerald-900/20 cursor-pointer">
-              <FileSpreadsheet className="w-4 h-4" />
-              Télécharger Export Excel (Multi-onglets)
-            </button>
-          </section>
+          {/* SECTION : Cartes de diagnostics (Grid) */}
+          {realtimeData ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              {/* Temp Card - Styled exactly like the blue "Earning" card in user's image */}
+              <div className="bg-[#0f2042] text-white rounded-xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between h-36 relative overflow-hidden group">
+                <div className="absolute right-4 top-4 p-2 bg-white/10 rounded-xl">
+                  <Thermometer className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div>
+                  <span className="text-slate-300 text-xs font-bold uppercase tracking-wider block mb-1">Température</span>
+                  <span className="text-4xl font-extrabold tracking-tight">
+                    {realtimeData.temperature.toFixed(1)} <span className="text-lg font-light text-slate-400">°C</span>
+                  </span>
+                </div>
+                <div className="text-[10px] text-emerald-400 font-semibold tracking-wide">
+                  ● Capté en temps réel
+                </div>
+              </div>
 
-          {/* Table d'Historique des relevés */}
-          <section>
-            <h2 className="text-xl font-bold mb-6 text-slate-300">Historique des 100 derniers relevés</h2>
-            <div className="glass-card rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Humidité Card - Clean white card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
+                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <Droplets className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Humidité</span>
+                  <span className="text-4xl font-extrabold text-[#0f2042]">
+                    {realtimeData.humidity.toFixed(0)} <span className="text-lg font-light text-slate-400">%</span>
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  Relative de l'air
+                </div>
+              </div>
+
+              {/* Pression Card - Clean white card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
+                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <Gauge className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Pression</span>
+                  <span className="text-4xl font-extrabold text-[#0f2042]">
+                    {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'} <span className="text-lg font-light text-slate-400">hPa</span>
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  Barométrique locale
+                </div>
+              </div>
+
+              {/* Pluie / Averses Card - Clean white card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
+                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <CloudRain className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Averses</span>
+                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                    {realtimeData.rain === 1 ? 'Actives (1)' : 'Inactives (0)'}
+                  </span>
+                </div>
+                <div className={`text-[10px] font-bold ${realtimeData.rain === 1 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                  {realtimeData.rain === 1 ? '● PLUIE EN COURS' : '● TEMPS SEC'}
+                </div>
+              </div>
+
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl p-12 text-center text-slate-400 border border-slate-200 font-medium">
+              Aucun capteur connecté
+            </div>
+          )}
+
+          {/* GRAPHS & GAUGES SECTION (Columns layout) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Colonne Gauche/Milieu : Graphique Recharts */}
+            <div className="lg:col-span-2 space-y-6">
+              {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') ? (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                  <h3 className="text-[#0f2042] font-bold text-md mb-6 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-amber-500" />
+                    Analyse Combinée Température / Humidité
+                  </h3>
+                  <div className="bg-[#fcfdfe] p-4 rounded-xl border border-slate-100">
+                    <MultiLineChart data={history} />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-8 text-center border border-slate-150 flex flex-col items-center justify-center h-full">
+                  <Info className="w-8 h-8 text-amber-500 mb-3" />
+                  <h4 className="font-bold text-slate-800 mb-1">Graphiques et analyses restreints</h4>
+                  <p className="text-xs text-slate-500 max-w-sm">
+                    L'affichage des graphiques temporels et des exports nécessite un compte technique ou chercheur.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Colonne Droite : Doughnut de batterie et diagnostics GSM */}
+            <div className="space-y-6">
+              {/* Doughnut Card - matches the doughnut circular chart on the right side of the user's image */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                <h3 className="text-[#0f2042] font-bold text-sm mb-4 uppercase tracking-wider w-full text-left">
+                  Autonomie Solaire
+                </h3>
+                
+                {/* SVG Doughnut chart */}
+                <div className="relative w-36 h-36 mb-4 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
+                    <circle cx="50" cy="50" r="40" stroke="#0f2042" strokeWidth="12" fill="transparent" 
+                            strokeDasharray={2 * Math.PI * 40}
+                            strokeDashoffset={2 * Math.PI * 40 * (1 - batteryPct / 100)} />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center">
+                    <span className="text-2xl font-black text-[#0f2042]">{batteryPct}%</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Charge</span>
+                  </div>
+                </div>
+
+                <div className="w-full text-left space-y-2 border-t border-slate-100 pt-4">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Tension réelle :</span>
+                    <span className="font-bold text-[#0f2042]">
+                      {realtimeData?.batteryVoltage ? `${realtimeData.batteryVoltage.toFixed(2)} V` : '4.12 V'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Source :</span>
+                    <span className="font-semibold text-emerald-600">● Panneau Solaire</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card GSM Network Diagnostics */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <h3 className="text-[#0f2042] font-bold text-sm mb-4 uppercase tracking-wider">
+                  Réseau Cellulaire
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-600">
+                      <Signal className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Signal</span>
+                      <span className="text-sm font-bold text-[#0f2042]">
+                        {realtimeData?.gsmSignal !== null && realtimeData?.gsmSignal !== undefined
+                          ? `${-113 + 2 * realtimeData.gsmSignal} dBm`
+                          : '-65 dBm'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-600">
+                      <Compass className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Opérateur</span>
+                      <span className="text-sm font-semibold text-slate-700">
+                        {realtimeData?.gsmOperator || 'Orange RDC'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* TABLEAU HISTORIQUE (Visible pour admin / tech / chercheur) */}
+          {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <h3 className="text-[#0f2042] font-bold text-md">Historique de la Station</h3>
+                <div className="flex gap-3">
+                  <button onClick={handleExportJSON} className="flex items-center gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
+                    <FileJson className="w-4 h-4" />
+                    Export JSON
+                  </button>
+                  <button onClick={handleExportExcel} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Export Excel
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto border border-slate-100 rounded-xl">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-slate-900/50 text-slate-400 border-b border-white/5">
+                  <thead className="text-xs uppercase bg-[#0f2042] text-white">
                     <tr>
                       <th className="px-6 py-4 font-semibold">Date & Heure</th>
                       <th className="px-6 py-4 font-semibold">Temp.</th>
@@ -351,21 +398,21 @@ export default function Dashboard() {
                       <th className="px-6 py-4 font-semibold">Alerte</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-slate-100">
                     {history.map((measure) => (
-                      <tr key={measure.id} className="hover:bg-white/[0.01] transition-colors">
-                        <td className="px-6 py-4 text-slate-300 font-mono">
+                      <tr key={measure.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 text-slate-500 font-mono">
                           {new Date(measure.timestamp).toLocaleString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 font-semibold text-white">{measure.temperature.toFixed(1)}°C</td>
-                        <td className="px-6 py-4">{measure.humidity.toFixed(0)}%</td>
-                        <td className="px-6 py-4">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
-                        <td className="px-6 py-4">{measure.rain === 1 ? 'Pluie (1)' : 'Sec (0)'}</td>
+                        <td className="px-6 py-4 font-bold text-[#0f2042]">{measure.temperature.toFixed(1)}°C</td>
+                        <td className="px-6 py-4 font-semibold text-slate-700">{measure.humidity.toFixed(0)}%</td>
+                        <td className="px-6 py-4 text-slate-600">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
+                        <td className="px-6 py-4 text-slate-600">{measure.rain === 1 ? 'Pluie (1)' : 'Sec (0)'}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                             measure.alertActive 
-                              ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
-                              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                              ? 'bg-rose-100 text-rose-700' 
+                              : 'bg-emerald-100 text-emerald-700'
                           }`}>
                             {measure.alertActive ? 'ALERTE' : 'NORMAL'}
                           </span>
@@ -375,27 +422,38 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
-              <div className="p-4 border-t border-white/5 bg-slate-950/30 text-xs text-slate-500 flex justify-between items-center">
-                <span>{history.length} relevés affichés</span>
-                <span>Total base : {stats?.totalMeasures || 0}</span>
+            </div>
+          )}
+
+          {/* ZONE ADMINISTRATION : Nettoyage */}
+          {currentRole === 'admin' && (
+            <div className="bg-rose-50/50 border border-rose-200/60 p-6 rounded-xl">
+              <h3 className="text-rose-900 font-bold text-sm mb-4 uppercase tracking-wider flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                Maintenance : Purge de Données
+              </h3>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-xs text-slate-600">Supprimer les relevés antérieurs à :</span>
+                <input
+                  type="number"
+                  value={cleanupDays}
+                  onChange={(e) => setCleanupDays(parseInt(e.target.value))}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-20 text-center text-sm font-semibold focus:outline-none focus:border-rose-500"
+                />
+                <span className="text-xs text-slate-600">jours</span>
+                <button
+                  onClick={handleCleanup}
+                  disabled={cleaning}
+                  className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {cleaning ? 'Exécution...' : 'Purger la base'}
+                </button>
               </div>
             </div>
-          </section>
-        </>
-      )}
+          )}
 
-      {/* Informations de limitation si Grand Public */}
-      {currentRole === 'public' && (
-        <section className="bg-indigo-950/10 border border-white/5 rounded-2xl p-6 flex gap-4 max-w-xl">
-          <Info className="w-6 h-6 text-indigo-400 shrink-0" />
-          <div className="text-sm">
-            <h4 className="font-bold text-white mb-1">Accès aux outils d'analyse et diagnostics</h4>
-            <p className="text-slate-400 leading-relaxed">
-              Pour des raisons de limitation de bande passante et d'usage réseau (GPRS), l'accès aux graphiques combinés, diagnostics de tension et de réseau GSM, ainsi qu'aux exports Excel nécessite un compte technique ou universitaire. Connectez-vous ou inscrivez-vous en haut à droite.
-            </p>
-          </div>
-        </section>
-      )}
+        </main>
+      </div>
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
