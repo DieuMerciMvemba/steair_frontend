@@ -7,12 +7,36 @@ import {
 import axios from 'axios';
 import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function Interpretation() {
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
   const [realtimeData, setRealtimeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Chargement de l'interprétation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const currentRole = user?.role || 'public';
 

@@ -13,12 +13,36 @@ import { useToast } from '../../hooks/useToast';
 import { ToastContainer } from '../../components/Toast';
 import { WeatherChart, MultiLineChart } from '../../components/WeatherChart';
 import { useAuth } from '../../hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
   const { data, loading, error } = useWeatherData();
   const { exportJSON, exportExcel } = useFileExport();
   const { toasts, success, error: showToastError, removeToast } = useToast();
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const [cleanupDays, setCleanupDays] = useState(30);
   const [cleaning, setCleaning] = useState(false);

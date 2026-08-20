@@ -11,11 +11,35 @@ import { useToast } from '../../hooks/useToast';
 import { ToastContainer } from '../../components/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useFileExport } from '../../hooks/useFileExport';
+import { useRouter } from 'next/navigation';
 
 export default function HistoryPage() {
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
   const { success, error: showToastError, toasts, removeToast } = useToast();
   const { exportJSON, exportExcel } = useFileExport();
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Chargement de l'historique...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
