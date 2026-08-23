@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
   Thermometer, Droplets, Gauge, CloudRain, ShieldAlert, Cpu, Activity, 
   TrendingUp, FileJson, FileSpreadsheet, Battery, Signal, 
-  Trash2, Info, Compass, Menu, X, Home, FileText, MessageSquare, LogOut, LogIn
+  Trash2, Info, Compass, Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';

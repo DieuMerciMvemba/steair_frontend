@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Activity, Cpu, Clock, MapPin, User, PlusCircle, History, CheckCircle, AlertTriangle, 
-  Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Signal, Compass
+  Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Signal, Compass, BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';

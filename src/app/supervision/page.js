@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Activity, Compass, Plus, Trash2, Edit2, ShieldAlert, Key, MapPin, CheckCircle, 
-  Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Signal, Cpu, Copy
+  Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Signal, Cpu, Copy, BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
