@@ -1,4 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "pages/api/**/*": {
+      "maxDuration": 15,
+      "memory": 1024
+    },
+    "app/api/**/*": {
+      "maxDuration": 15,
+      "memory": 1024
+    }
+  }
 }
