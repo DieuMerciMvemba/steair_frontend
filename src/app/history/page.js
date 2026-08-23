@@ -188,8 +188,10 @@ export default function HistoryPage() {
   }, [backendError, showToastError]);
 
   useEffect(() => {
-    fetchData();
-  }, [customDateRange, filters, selectedStationId, fetchData]);
+    if (user) {
+      fetchData();
+    }
+  }, [customDateRange, filters, selectedStationId, fetchData, user]);
 
   const resetFilters = () => {
     setFilters({
