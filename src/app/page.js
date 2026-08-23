@@ -23,7 +23,7 @@ export default function Home() {
 
         {/* Subtitle */}
         <p className="text-base md:text-xl text-slate-400 mb-10 max-w-2xl leading-relaxed">
-          Une technologie qui s'efface au profit de l'expérience : SteAir Pro intègre des capteurs de précision avec une architecture FreeRTOS et un stockage multi-base de données.
+          Une technologie qui s'efface au profit de l'expérience : la Station Météo intègre des capteurs de précision avec une architecture FreeRTOS et un stockage multi-base de données.
         </p>
 
         {/* CTA Buttons */}

@@ -4,7 +4,7 @@ import AuthProviderWrapper from "../components/AuthProviderWrapper";
 import Navbar from "../components/Navbar";
 
 export const metadata = {
-  title: "SteAir Pro - Station Météo Connectée",
+  title: "Station Météo - Connectée",
   description: "Système de surveillance climatique professionnel en temps réel avec analyse FreeRTOS.",
 };
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
 
           {/* Footer */}
           <footer className="py-8 border-t border-slate-900 bg-slate-950/50 backdrop-blur-sm mt-auto text-center text-xs text-slate-500">
-            <p>© 2026 SteAir Pro. Tous droits réservés.</p>
+            <p>© 2026 Station Météo. Tous droits réservés.</p>
           </footer>
         </AuthProviderWrapper>
       </body>

@@ -14,7 +14,7 @@ export default function Navbar() {
             <Activity className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold tracking-wider text-white text-lg">
-            SteAir Pro
+            Station Météo
           </span>
         </Link>
 
