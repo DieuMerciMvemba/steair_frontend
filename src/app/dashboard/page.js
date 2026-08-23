@@ -222,21 +222,43 @@ export default function Dashboard() {
 
           {/* SECTION : Cartes de diagnostics (Grid) */}
           {realtimeData ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               
-              {/* Temp Card - Styled exactly like the blue "Earning" card in user's image */}
+              {/* Temp BMP280 Card */}
               <div className="bg-[#0f2042] text-white rounded-xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between h-36 relative overflow-hidden group">
                 <div className="absolute right-4 top-4 p-2 bg-white/10 rounded-xl">
                   <Thermometer className="w-5 h-5 text-indigo-300" />
                 </div>
                 <div>
-                  <span className="text-slate-300 text-xs font-bold uppercase tracking-wider block mb-1">Température</span>
-                  <span className="text-4xl font-extrabold tracking-tight">
-                    {realtimeData.temperature.toFixed(1)} <span className="text-lg font-light text-slate-400">°C</span>
+                  <span className="text-slate-300 text-xs font-bold uppercase tracking-wider block mb-1">Température (BMP280)</span>
+                  <span className="text-3xl font-extrabold tracking-tight">
+                    {realtimeData.temperatureBmp !== null && realtimeData.temperatureBmp !== undefined 
+                      ? realtimeData.temperatureBmp.toFixed(1) 
+                      : (realtimeData.temperature !== null && realtimeData.temperature !== undefined ? realtimeData.temperature.toFixed(1) : '--.-')
+                    } <span className="text-base font-light text-slate-400">°C</span>
                   </span>
                 </div>
                 <div className="text-[10px] text-emerald-400 font-semibold tracking-wide">
-                  ● Capté en temps réel
+                  ● Capteur Barométrique (Précis)
+                </div>
+              </div>
+
+              {/* Temp DHT11 Card */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
+                <div className="absolute right-4 top-4 p-2 bg-indigo-500/10 rounded-xl text-indigo-600">
+                  <Thermometer className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Température (DHT11)</span>
+                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                    {realtimeData.temperatureDht !== null && realtimeData.temperatureDht !== undefined 
+                      ? realtimeData.temperatureDht.toFixed(1) 
+                      : '--.-'
+                    } <span className="text-base font-light text-slate-400">°C</span>
+                  </span>
+                </div>
+                <div className="text-[10px] text-indigo-500 font-semibold tracking-wide">
+                  ● Capteur d'Humidité (Repli)
                 </div>
               </div>
 
@@ -247,12 +269,15 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Humidité</span>
-                  <span className="text-4xl font-extrabold text-[#0f2042]">
-                    {realtimeData.humidity.toFixed(0)} <span className="text-lg font-light text-slate-400">%</span>
+                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                    {realtimeData.humidity !== null && realtimeData.humidity !== undefined 
+                      ? realtimeData.humidity.toFixed(0) 
+                      : '--'
+                    } <span className="text-base font-light text-slate-400">%</span>
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Relative de l'air
+                  Relative de l'air (DHT11)
                 </div>
               </div>
 
@@ -263,12 +288,12 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Pression</span>
-                  <span className="text-4xl font-extrabold text-[#0f2042]">
-                    {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'} <span className="text-lg font-light text-slate-400">hPa</span>
+                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                    {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'} <span className="text-base font-light text-slate-400">hPa</span>
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Barométrique locale
+                  Barométrique locale (BMP280)
                 </div>
               </div>
 
@@ -279,8 +304,8 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Averses</span>
-                  <span className="text-3xl font-extrabold text-[#0f2042]">
-                    {realtimeData.rain === 1 ? 'Actives (1)' : 'Inactives (0)'}
+                  <span className="text-2xl font-extrabold text-[#0f2042]">
+                    {realtimeData.rain === 1 ? 'Actives' : 'Inactives'}
                   </span>
                 </div>
                 <div className={`text-[10px] font-bold ${realtimeData.rain === 1 ? 'text-rose-500' : 'text-emerald-600'}`}>
