@@ -19,9 +19,26 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-          <Link href="/" className="hover:text-indigo-400 transition-colors">À propos</Link>
-          <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">Dashboard</Link>
-          <Link href="/history" className="hover:text-indigo-400 transition-colors">Historique</Link>
+          <Link href="/" className="hover:text-indigo-400 transition-colors">Carte</Link>
+          
+          {user && (
+            <>
+              <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">Dashboard</Link>
+              <Link href="/history" className="hover:text-indigo-400 transition-colors">Historique</Link>
+            </>
+          )}
+
+          {user && (user.role === 'admin' || user.role === 'tech') && (
+            <>
+              <Link href="/diagnostics" className="hover:text-indigo-400 transition-colors">Santé & Alertes</Link>
+              <Link href="/maintenance" className="hover:text-indigo-400 transition-colors">Maintenance</Link>
+            </>
+          )}
+
+          {user && user.role === 'admin' && (
+            <Link href="/supervision" className="hover:text-indigo-400 transition-colors">Supervision</Link>
+          )}
+
           <Link href="/interpretation" className="hover:text-indigo-400 transition-colors">Interprétation</Link>
         </div>
 

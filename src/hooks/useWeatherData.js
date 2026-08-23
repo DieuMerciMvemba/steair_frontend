@@ -5,7 +5,7 @@ import axios from 'axios'
 const BASE_INTERVAL_MS = 10_000
 const MAX_BACKOFF_MS   = 120_000
 
-export function useWeatherData() {
+export function useWeatherData(stationId) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -28,10 +28,11 @@ export function useWeatherData() {
 
     try {
       const buster = Date.now();
+      const stParam = stationId ? `&stationId=${stationId}` : '';
       const [realtime, history, stats] = await Promise.all([
-        axios.get(`/api/realtime?_cb=${buster}`, { timeout: 8000 }),
-        axios.get(`/api/history?limit=100&_cb=${buster}`, { timeout: 8000 }),
-        axios.get(`/api/stats?_cb=${buster}`, { timeout: 8000 })
+        axios.get(`/api/realtime?_cb=${buster}${stParam}`, { timeout: 8000 }),
+        axios.get(`/api/history?limit=100&_cb=${buster}${stParam}`, { timeout: 8000 }),
+        axios.get(`/api/stats?_cb=${buster}${stParam}`, { timeout: 8000 })
       ])
 
       if (!mountedRef.current) return
@@ -89,7 +90,7 @@ export function useWeatherData() {
     if (mountedRef.current && reschedule) {
       scheduleLoop(() => fetchData(true), backoffRef.current)
     }
-  }, [scheduleLoop])
+  }, [scheduleLoop, stationId])
 
   useEffect(() => {
     mountedRef.current = true
@@ -100,7 +101,7 @@ export function useWeatherData() {
       mountedRef.current = false
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [fetchData])
+  }, [fetchData, stationId])
 
   return { data, loading, error, rateLimited, refetch: () => fetchData(false), consecutiveErrors }
 }

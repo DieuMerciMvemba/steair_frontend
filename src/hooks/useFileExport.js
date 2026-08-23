@@ -5,11 +5,12 @@ export function useFileExport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const exportJSON = async () => {
+  const exportJSON = async (stationId) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get('/api/export/json', { responseType: 'blob' })
+      const stParam = stationId ? `?stationId=${stationId}` : '';
+      const response = await axios.get(`/api/export/json${stParam}`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
@@ -29,11 +30,12 @@ export function useFileExport() {
     }
   }
 
-  const exportExcel = async () => {
+  const exportExcel = async (stationId) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get('/api/export/excel', { responseType: 'blob' })
+      const stParam = stationId ? `?stationId=${stationId}` : '';
+      const response = await axios.get(`/api/export/excel${stParam}`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url

@@ -25,9 +25,45 @@ export default function Dashboard() {
     }
   }, [user, authLoading, router]);
 
-  const { data, loading, error } = useWeatherData();
+  const [stations, setStations] = useState([]);
+  const [selectedStationId, setSelectedStationId] = useState('');
+  const [cleanupDays, setCleanupDays] = useState(30);
+  const [cleaning, setCleaning] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadStations() {
+      try {
+        const res = await axios.get('/api/stations');
+        const list = res.data || [];
+        setStations(list);
+
+        const params = new URLSearchParams(window.location.search);
+        const urlStationId = params.get('stationId');
+
+        if (urlStationId) {
+          setSelectedStationId(urlStationId);
+        } else if (list.length > 0) {
+          setSelectedStationId(list[0].id);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des stations", err);
+      }
+    }
+    if (user) {
+      loadStations();
+    }
+  }, [user]);
+
+  const { data, loading, error } = useWeatherData(selectedStationId);
   const { exportJSON, exportExcel } = useFileExport();
   const { toasts, success, error: showToastError, removeToast } = useToast();
+
+  useEffect(() => {
+    if (error) {
+      showToastError(error);
+    }
+  }, [error, showToastError]);
 
   if (authLoading) {
     return (
@@ -44,18 +80,8 @@ export default function Dashboard() {
     return null;
   }
 
-  const [cleanupDays, setCleanupDays] = useState(30);
-  const [cleaning, setCleaning] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (error) {
-      showToastError(error);
-    }
-  }, [error, showToastError]);
-
   const handleExportJSON = async () => {
-    const result = await exportJSON();
+    const result = await exportJSON(selectedStationId);
     if (result) {
       success('Export JSON réussi');
     } else {
@@ -64,7 +90,7 @@ export default function Dashboard() {
   };
 
   const handleExportExcel = async () => {
-    const result = await exportExcel();
+    const result = await exportExcel(selectedStationId);
     if (result) {
       success('Export Excel réussi');
     } else {
@@ -134,7 +160,7 @@ export default function Dashboard() {
       <nav className="flex-1 px-4 py-6 space-y-2">
         <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
           <Home className="w-4 h-4 text-indigo-400" />
-          Accueil
+          Carte Réseau
         </Link>
         <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
           <Activity className="w-4 h-4 text-indigo-400" />
@@ -144,6 +170,27 @@ export default function Dashboard() {
           <FileText className="w-4 h-4 text-indigo-400" />
           Historique
         </Link>
+
+        {user && (user.role === 'admin' || user.role === 'tech') && (
+          <>
+            <Link href="/diagnostics" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+              <Signal className="w-4 h-4 text-indigo-400" />
+              Santé & Alertes
+            </Link>
+            <Link href="/maintenance" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+              <Cpu className="w-4 h-4 text-indigo-400" />
+              Maintenance
+            </Link>
+          </>
+        )}
+
+        {user && user.role === 'admin' && (
+          <Link href="/supervision" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+            <Compass className="w-4 h-4 text-indigo-400" />
+            Supervision
+          </Link>
+        )}
+
         <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
           <MessageSquare className="w-4 h-4 text-indigo-400" />
           Interprétation
@@ -198,9 +245,22 @@ export default function Dashboard() {
             <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all">
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide">
-              {currentRole === 'admin' ? 'Dashboard Administrateur' : currentRole === 'tech' ? 'Dashboard Technique' : currentRole === 'researcher' ? 'Dashboard Chercheur' : 'Dashboard Public'}
+            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block">
+              {currentRole === 'admin' ? 'Supervision' : currentRole === 'tech' ? 'Technique' : currentRole === 'researcher' ? 'Analyse' : 'Météo'}
             </h2>
+            {stations.length > 0 && (
+              <select
+                value={selectedStationId}
+                onChange={(e) => setSelectedStationId(e.target.value)}
+                className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
+              >
+                {stations.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.name} ({st.code})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
             ● KongoClim Online

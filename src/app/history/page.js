@@ -43,6 +43,8 @@ export default function HistoryPage() {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [stations, setStations] = useState([]);
+  const [selectedStationId, setSelectedStationId] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
   const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
   const [showFilters, setShowFilters] = useState(false);
@@ -62,10 +64,35 @@ export default function HistoryPage() {
 
   const currentRole = user?.role || 'public';
 
+  // Load stations on mount
+  useEffect(() => {
+    async function loadStations() {
+      try {
+        const res = await axios.get('/api/stations');
+        const list = res.data || [];
+        setStations(list);
+
+        const params = new URLSearchParams(window.location.search);
+        const urlStationId = params.get('stationId');
+
+        if (urlStationId) {
+          setSelectedStationId(urlStationId);
+        } else if (list.length > 0) {
+          setSelectedStationId(list[0].id);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des stations", err);
+      }
+    }
+    if (user) {
+      loadStations();
+    }
+  }, [user]);
+
   // Reset page when period or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedPeriod, customDateRange, filters]);
+  }, [selectedPeriod, customDateRange, filters, selectedStationId]);
 
   const periods = [
     { id: '24h', label: '24 Heures', hours: 24 },
@@ -125,6 +152,7 @@ export default function HistoryPage() {
     setLoading(true);
     try {
       let url = `/api/history?start=${customDateRange.start}&end=${customDateRange.end}&limit=1000`;
+      if (selectedStationId) url += `&stationId=${selectedStationId}`;
       if (filters.minTemp) url += `&minTemp=${filters.minTemp}`;
       if (filters.maxTemp) url += `&maxTemp=${filters.maxTemp}`;
       if (filters.minHumidity) url += `&minHumidity=${filters.minHumidity}`;
@@ -141,7 +169,7 @@ export default function HistoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [customDateRange, filters]);
+  }, [customDateRange, filters, selectedStationId]);
 
   useEffect(() => {
     if (backendError) {
@@ -151,7 +179,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetchData();
-  }, [customDateRange, filters, fetchData]);
+  }, [customDateRange, filters, selectedStationId, fetchData]);
 
   const resetFilters = () => {
     setFilters({
@@ -186,7 +214,7 @@ export default function HistoryPage() {
   }, [data, currentPage]);
 
   const handleExportJSON = async () => {
-    const result = await exportJSON();
+    const result = await exportJSON(selectedStationId);
     if (result) {
       success('Export JSON réussi');
     } else {
@@ -195,7 +223,7 @@ export default function HistoryPage() {
   };
 
   const handleExportExcel = async () => {
-    const result = await exportExcel();
+    const result = await exportExcel(selectedStationId);
     if (result) {
       success('Export Excel réussi');
     } else {
@@ -227,7 +255,7 @@ export default function HistoryPage() {
       <nav className="flex-1 px-4 py-6 space-y-2">
         <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
           <Home className="w-4 h-4 text-indigo-400" />
-          Accueil
+          Carte Réseau
         </Link>
         <Link href="/dashboard" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
           <Activity className="w-4 h-4 text-indigo-400" />
@@ -237,6 +265,27 @@ export default function HistoryPage() {
           <FileText className="w-4 h-4 text-indigo-400" />
           Historique
         </button>
+
+        {user && (user.role === 'admin' || user.role === 'tech') && (
+          <>
+            <Link href="/diagnostics" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+              <Signal className="w-4 h-4 text-indigo-400" />
+              Santé & Alertes
+            </Link>
+            <Link href="/maintenance" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+              <Cpu className="w-4 h-4 text-indigo-400" />
+              Maintenance
+            </Link>
+          </>
+        )}
+
+        {user && user.role === 'admin' && (
+          <Link href="/supervision" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+            <Compass className="w-4 h-4 text-indigo-400" />
+            Supervision
+          </Link>
+        )}
+
         <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
           <MessageSquare className="w-4 h-4 text-indigo-400" />
           Interprétation
@@ -292,9 +341,22 @@ export default function HistoryPage() {
             <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all">
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide">
+            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block">
               Historique des Relevés
             </h2>
+            {stations.length > 0 && (
+              <select
+                value={selectedStationId}
+                onChange={(e) => setSelectedStationId(e.target.value)}
+                className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
+              >
+                {stations.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.name} ({st.code})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
             ● KongoClim Online
