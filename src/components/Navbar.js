@@ -28,6 +28,10 @@ export default function Navbar() {
             </>
           )}
 
+          {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
+            <Link href="/analysis" className="hover:text-indigo-400 transition-colors">Analyse</Link>
+          )}
+
           {user && (user.role === 'admin' || user.role === 'tech') && (
             <>
               <Link href="/diagnostics" className="hover:text-indigo-400 transition-colors">Santé & Alertes</Link>

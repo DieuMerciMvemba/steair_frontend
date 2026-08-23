@@ -155,6 +155,13 @@ export default function MaintenancePage() {
           <Signal className="w-4 h-4 text-indigo-400" />
           Santé & Alertes
         </Link>
+        {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
+          <Link href="/analysis" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+            <BarChart3 className="w-4 h-4 text-indigo-400" />
+            Analyse Climatique
+          </Link>
+        )}
+
         <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
           <Cpu className="w-4 h-4 text-indigo-400" />
           Maintenance

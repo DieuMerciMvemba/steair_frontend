@@ -266,6 +266,13 @@ export default function HistoryPage() {
           Historique
         </button>
 
+        {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
+          <Link href="/analysis" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
+            <BarChart3 className="w-4 h-4 text-indigo-400" />
+            Analyse Climatique
+          </Link>
+        )}
+
         {user && (user.role === 'admin' || user.role === 'tech') && (
           <>
             <Link href="/diagnostics" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
