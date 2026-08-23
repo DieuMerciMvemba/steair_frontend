@@ -90,6 +90,16 @@ export default function AnalysisPage() {
   const fetchAnalysisData = useCallback(async () => {
     if (selectedStationIds.length === 0 || !dateRange.start || !dateRange.end) return;
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (!axios.defaults.headers.common['Authorization']) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
     setLoading(true);
     try {
       const stationParam = selectedStationIds.join(',');

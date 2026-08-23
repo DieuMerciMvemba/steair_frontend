@@ -26,6 +26,18 @@ export function useWeatherData(stationId) {
   const fetchData = useCallback(async (reschedule) => {
     if (!mountedRef.current) return
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!axios.defaults.headers.common['Authorization']) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
       const buster = Date.now();
       const stParam = stationId ? `&stationId=${stationId}` : '';

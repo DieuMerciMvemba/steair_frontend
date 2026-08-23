@@ -47,6 +47,17 @@ export default function MaintenancePage() {
 
   const loadData = async () => {
     if (!user || (user.role !== 'admin' && user.role !== 'tech')) return;
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (!axios.defaults.headers.common['Authorization']) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
     setLoading(true);
     try {
       const [logsRes, stationsRes] = await Promise.all([

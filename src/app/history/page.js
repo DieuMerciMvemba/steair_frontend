@@ -149,6 +149,16 @@ export default function HistoryPage() {
   const fetchData = useCallback(async () => {
     if (!customDateRange.start || !customDateRange.end) return;
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (!axios.defaults.headers.common['Authorization']) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
     setLoading(true);
     try {
       let url = `/api/history?start=${customDateRange.start}&end=${customDateRange.end}&limit=1000`;
