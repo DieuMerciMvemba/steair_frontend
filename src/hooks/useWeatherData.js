@@ -27,10 +27,11 @@ export function useWeatherData() {
     if (!mountedRef.current) return
 
     try {
+      const buster = Date.now();
       const [realtime, history, stats] = await Promise.all([
-        axios.get('/api/realtime', { timeout: 8000 }),
-        axios.get('/api/history?limit=100', { timeout: 8000 }),
-        axios.get('/api/stats', { timeout: 8000 })
+        axios.get(`/api/realtime?_cb=${buster}`, { timeout: 8000 }),
+        axios.get(`/api/history?limit=100&_cb=${buster}`, { timeout: 8000 }),
+        axios.get(`/api/stats?_cb=${buster}`, { timeout: 8000 })
       ])
 
       if (!mountedRef.current) return
