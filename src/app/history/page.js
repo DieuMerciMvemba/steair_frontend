@@ -49,21 +49,6 @@ export default function HistoryPage() {
 
   const currentRole = user?.role || 'public';
 
-  if (authLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Chargement de l'historique...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   // Load stations on mount
   useEffect(() => {
     async function loadStations() {
