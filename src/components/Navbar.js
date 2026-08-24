@@ -8,45 +8,45 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
-      <nav className="glass-nav rounded-full px-6 py-3 max-w-5xl w-full flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
+      <nav className="glass-nav rounded-full px-6 py-3 max-w-[1350px] w-full flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full shadow-lg group-hover:scale-105 transition-all">
             <Activity className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold tracking-wider text-white text-lg">
+          <span className="font-bold tracking-wider text-white text-lg whitespace-nowrap">
             Station Météo
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-          <Link href="/" className="hover:text-indigo-400 transition-colors">Carte</Link>
+        <div className="hidden md:flex items-center justify-center gap-4 lg:gap-6 xl:gap-8 text-sm font-medium text-slate-300 flex-1 px-4">
+          <Link href="/" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Carte</Link>
           
           {user && (
             <>
-              <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">Dashboard</Link>
-              <Link href="/history" className="hover:text-indigo-400 transition-colors">Historique</Link>
+              <Link href="/dashboard" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Dashboard</Link>
+              <Link href="/history" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Historique</Link>
             </>
           )}
 
           {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
-            <Link href="/analysis" className="hover:text-indigo-400 transition-colors">Analyse</Link>
+            <Link href="/analysis" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Analyse</Link>
           )}
 
           {user && (user.role === 'admin' || user.role === 'tech') && (
             <>
-              <Link href="/diagnostics" className="hover:text-indigo-400 transition-colors">Santé & Alertes</Link>
-              <Link href="/maintenance" className="hover:text-indigo-400 transition-colors">Maintenance</Link>
+              <Link href="/diagnostics" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Santé & Alertes</Link>
+              <Link href="/maintenance" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Maintenance</Link>
             </>
           )}
 
           {user && user.role === 'admin' && (
-            <Link href="/supervision" className="hover:text-indigo-400 transition-colors">Supervision</Link>
+            <Link href="/supervision" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Supervision</Link>
           )}
 
-          <Link href="/interpretation" className="hover:text-indigo-400 transition-colors">Interprétation</Link>
+          <Link href="/interpretation" className="hover:text-indigo-400 transition-colors whitespace-nowrap">Interprétation</Link>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           {user ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 text-xs bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20 text-indigo-300">
