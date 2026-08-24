@@ -270,7 +270,7 @@ export default function Dashboard() {
             )}
           </div>
           <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-            ● KongoClim Online
+            ● Station
           </div>
         </header>
 
@@ -279,10 +279,14 @@ export default function Dashboard() {
 
           {/* Alerte météo critique */}
           {realtimeData?.alertActive && (
-            <div className="bg-rose-50 border border-rose-600 text-white p-4 rounded-xl flex items-center gap-3 shadow-md animate-pulse">
+            <div className="bg-rose-600 border border-rose-700 text-white p-4 rounded-xl flex items-center gap-3 shadow-md animate-pulse">
               <ShieldAlert className="w-6 h-6 text-white shrink-0" />
               <div className="text-sm font-semibold">
-                ALERTE PLUIE ACTIVE : Précipitations intenses détectées par la station en RDC.
+                ALERTE SYSTÈME ACTIVE : {
+                  realtimeData?.batteryVoltage !== null && realtimeData?.batteryVoltage < 3.4
+                    ? "Tension de batterie critique (< 3.4V) - Entretien requis."
+                    : "Température de fonctionnement critique détectée."
+                }
               </div>
             </div>
           )}
