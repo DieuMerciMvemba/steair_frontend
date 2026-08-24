@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
-  Calendar, Filter, ChevronDown, X, BarChart3, Table, Activity, 
+  Calendar, Filter, ChevronDown, X, BarChart3, Table, Activity, Signal, Cpu, Compass,
   ChevronLeft, ChevronRight, Home, FileText, MessageSquare, LogOut, LogIn, Menu, FileJson, FileSpreadsheet
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -26,21 +26,6 @@ export default function HistoryPage() {
   const { success, error: showToastError, toasts, removeToast } = useToast();
   const { exportJSON, exportExcel } = useFileExport();
 
-  if (authLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Chargement de l'historique...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [stations, setStations] = useState([]);
@@ -63,6 +48,21 @@ export default function HistoryPage() {
   const itemsPerPage = 25;
 
   const currentRole = user?.role || 'public';
+
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Chargement de l'historique...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   // Load stations on mount
   useEffect(() => {
@@ -224,6 +224,22 @@ export default function HistoryPage() {
     const start = (currentPage - 1) * itemsPerPage;
     return data.slice(start, start + itemsPerPage);
   }, [data, currentPage]);
+
+  // ─── Early returns APRÈS tous les hooks ───────────────────────────────────
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400 text-sm">Chargement de l'historique...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleExportJSON = async () => {
     const result = await exportJSON(selectedStationId);

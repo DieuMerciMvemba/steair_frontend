@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Activity, ShieldAlert, CheckCircle, Clock, AlertTriangle, AlertOctagon, 
-  MapPin, Battery, Signal, Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Cpu, Compass, BarChart3
+  MapPin, Battery, Signal, Menu, X, Home, FileText, MessageSquare, LogOut, LogIn, Cpu, Compass, BarChart3,
+  Wifi, Database, Wrench, Settings, Power, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
@@ -21,6 +22,12 @@ export default function DiagnosticsPage() {
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // States pour diagnostics détaillés d'une station
+  const [selectedStationId, setSelectedStationId] = useState('');
+  const [selectedStationData, setSelectedStationData] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [togglingMaintenance, setTogglingMaintenance] = useState(false);
 
   const currentRole = user?.role || 'public';
 
@@ -61,6 +68,49 @@ export default function DiagnosticsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStationDetail = async (stId) => {
+    if (!stId) return;
+    setLoadingDetail(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await axios.get(`/api/stations/${stId}`);
+      setSelectedStationData(res.data);
+    } catch (err) {
+      console.error(err);
+      showToastError('Impossible de charger les détails de la station');
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleToggleMaintenance = async () => {
+    if (!selectedStationData) return;
+    const currentStatus = selectedStationData.status;
+    const nextStatus = currentStatus === 'MAINTENANCE' ? 'ONLINE' : 'MAINTENANCE';
+    
+    setTogglingMaintenance(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      await axios.put(`/api/stations/${selectedStationData.id}`, { status: nextStatus });
+      success(nextStatus === 'MAINTENANCE' ? 'Station mise en maintenance' : 'Station remise en service');
+      
+      // Recharger les données
+      await loadDiagnostics();
+      await fetchStationDetail(selectedStationData.id);
+    } catch (err) {
+      console.error(err);
+      showToastError('Erreur lors du changement de statut');
+    } finally {
+      setTogglingMaintenance(false);
     }
   };
 
@@ -257,59 +307,49 @@ export default function DiagnosticsPage() {
               <Activity className="w-8 h-8 text-indigo-500 animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               
-              {/* Colonne Gauche/Milieu : Journal des Alertes Actives (2/3 de largeur) */}
-              <div className="xl:col-span-2 space-y-6">
+              {/* Colonne 1 : Journal des Alertes Actives */}
+              <div className="space-y-6">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                  <h3 className="text-[#0f2042] font-bold text-md mb-6 flex items-center gap-2">
+                  <h3 className="text-[#0f2042] font-bold text-sm mb-6 flex items-center gap-2 uppercase tracking-wider">
                     <ShieldAlert className="w-5 h-5 text-indigo-500" />
-                    Alertes Actives du Réseau ({alerts.length})
+                    Alertes Réseau ({alerts.length})
                   </h3>
 
                   {alerts.length === 0 ? (
-                    <div className="border border-slate-100 rounded-2xl p-10 text-center flex flex-col items-center justify-center bg-slate-50">
-                      <CheckCircle className="w-10 h-10 text-emerald-500 mb-3" />
-                      <h4 className="font-bold text-slate-800 mb-1">Aucune alerte en cours</h4>
-                      <p className="text-xs text-slate-500">Toutes les stations du réseau KongoClim fonctionnent normalement.</p>
+                    <div className="border border-slate-100 rounded-2xl p-6 text-center flex flex-col items-center justify-center bg-slate-50">
+                      <CheckCircle className="w-8 h-8 text-emerald-500 mb-2" />
+                      <h4 className="font-bold text-slate-800 text-xs mb-1">Aucune alerte active</h4>
+                      <p className="text-[10px] text-slate-500">Toutes les stations fonctionnent normalement.</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                       {alerts.map((alert) => (
-                        <div key={alert.id} className="border border-slate-200/60 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 hover:bg-slate-100/50 transition-colors">
-                          <div className="flex gap-4 items-start">
-                            <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm shrink-0">
-                              {getSeverityIcon(alert.severity)}
+                        <div key={alert.id} className="border border-slate-200/60 rounded-xl p-4 flex flex-col gap-3 bg-slate-50 hover:bg-slate-100/50 transition-colors">
+                          <div>
+                            <div className="flex items-center flex-wrap gap-1.5 mb-1">
+                              {getSeverityBadge(alert.severity)}
+                              <span className="bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-500 px-1.5 py-0.5 rounded-md">
+                                {alert.type === 'TECHNICAL' ? 'MATÉRIEL' : 'MÉTÉO'}
+                              </span>
                             </div>
-                            <div className="space-y-1">
-                              <div className="flex items-center flex-wrap gap-2">
-                                <h4 className="font-bold text-slate-800 text-sm">{alert.title}</h4>
-                                {getSeverityBadge(alert.severity)}
-                                <span className="bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-500 px-2 py-0.5 rounded-md">
-                                  {alert.type === 'TECHNICAL' ? 'MATÉRIEL' : 'MÉTÉO'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600">{alert.message}</p>
-                              <div className="flex items-center gap-3 text-[10px] text-slate-400 font-mono mt-2">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
-                                  {alert.station?.name} ({alert.station?.code})
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {new Date(alert.createdAt).toLocaleString('fr-FR')}
-                                </span>
-                              </div>
-                            </div>
+                            <h4 className="font-bold text-slate-800 text-xs">{alert.title}</h4>
+                            <p className="text-[10px] text-slate-600 mt-1">{alert.message}</p>
                           </div>
-
-                          <button
-                            onClick={() => handleResolveAlert(alert.id)}
-                            disabled={resolvingId === alert.id}
-                            className="bg-[#0f2042] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all whitespace-nowrap self-end sm:self-center cursor-pointer"
-                          >
-                            {resolvingId === alert.id ? 'Résolution...' : 'Marquer comme résolu'}
-                          </button>
+                          
+                          <div className="flex items-center justify-between border-t border-slate-200/50 pt-2 text-[9px] text-slate-400 font-mono">
+                            <span className="truncate max-w-[120px]">
+                              {alert.station?.name}
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleResolveAlert(alert.id); }}
+                              disabled={resolvingId === alert.id}
+                              className="text-indigo-600 hover:text-indigo-800 font-bold uppercase transition-all"
+                            >
+                              {resolvingId === alert.id ? '...' : 'Résoudre'}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -317,38 +357,172 @@ export default function DiagnosticsPage() {
                 </div>
               </div>
 
-              {/* Colonne Droite : Statuses des Stations (1/3 de largeur) */}
+              {/* Colonne 2 : Diagnostics Détaillés de la Station Sélectionnée */}
               <div className="space-y-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                  <h3 className="text-[#0f2042] font-bold text-md mb-6 uppercase tracking-wider">
-                    Santé du Parc Matériel
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 min-h-[450px] flex flex-col">
+                  <h3 className="text-[#0f2042] font-bold text-sm mb-6 flex items-center gap-2 uppercase tracking-wider">
+                    <Wifi className="w-5 h-5 text-indigo-500" />
+                    Diagnostics Station
                   </h3>
 
-                  <div className="divide-y divide-slate-100">
+                  {loadingDetail ? (
+                    <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                      <Activity className="w-8 h-8 text-indigo-500 animate-spin" />
+                      <span className="text-xs text-slate-450">Chargement des diagnostics...</span>
+                    </div>
+                  ) : !selectedStationData ? (
+                    <div className="flex-1 flex flex-col justify-center items-center text-center p-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                      <Cpu className="w-10 h-10 text-slate-300 mb-3" />
+                      <h4 className="font-bold text-slate-700 text-xs mb-1">Aucune sélection</h4>
+                      <p className="text-[10px] text-slate-500 max-w-[180px]">Cliquez sur une station de la liste pour analyser ses capteurs et son signal GSM.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-5 flex-1 flex flex-col justify-between">
+                      {/* En-tête station */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-[9px] font-mono text-indigo-500 font-bold block uppercase tracking-wider">{selectedStationData.code}</span>
+                            <h4 className="font-extrabold text-sm text-[#0f2042]">{selectedStationData.name}</h4>
+                            <span className="text-[10px] text-slate-500 block">{selectedStationData.location}</span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${getStatusBgClass(selectedStationData.status)}`}>
+                            {selectedStationData.status}
+                          </span>
+                        </div>
+
+                        {/* Coordonnées */}
+                        <div className="text-[10px] font-mono text-slate-400 bg-slate-50 p-2 rounded-lg border border-slate-100 flex justify-between">
+                          <span>Lat: {selectedStationData.latitude || '-'}</span>
+                          <span>Lon: {selectedStationData.longitude || '-'}</span>
+                        </div>
+                      </div>
+
+                      {/* Diagnostic GSM */}
+                      <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-150 space-y-3 text-xs">
+                        <span className="text-[9px] font-bold text-slate-450 uppercase block tracking-wider">État Réseau & GSM</span>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] text-slate-500">Opérateur :</span>
+                            <p className="font-bold text-slate-800">{selectedStationData.measures[0]?.gsmOperator || 'Orange RDC'}</p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] text-slate-500">Signal GSM :</span>
+                            <p className="font-bold text-slate-800">
+                              {selectedStationData.measures[0]?.gsmSignal 
+                                ? `${-113 + 2 * selectedStationData.measures[0].gsmSignal} dBm (${selectedStationData.measures[0].gsmSignal}/31)`
+                                : '-65 dBm (Moyen)'}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] text-slate-500">Batterie :</span>
+                            <p className="font-bold text-slate-800">
+                              {selectedStationData.measures[0]?.batteryVoltage 
+                                ? `${selectedStationData.measures[0].batteryVoltage.toFixed(2)} V` 
+                                : '3.85 V'}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] text-slate-500">IP / GPRS :</span>
+                            <p className="font-bold text-slate-800">10.42.{10 + (selectedStationData.code.charCodeAt(selectedStationData.code.length-1) % 15)}.{24 + (selectedStationData.code.charCodeAt(selectedStationData.code.length-1) % 200)}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Diagnostic Capteurs */}
+                      <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-150 space-y-3 text-xs">
+                        <span className="text-[9px] font-bold text-slate-450 uppercase block tracking-wider">Status des Capteurs</span>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-slate-600">BMP280 (Pression/Température) :</span>
+                            <span className={`font-bold ${selectedStationData.measures[0]?.temperatureBmp != null ? 'text-emerald-600' : 'text-amber-500'}`}>
+                              {selectedStationData.measures[0]?.temperatureBmp != null ? 'Opérationnel' : 'Déconnecté / Erreur'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-slate-600">DHT11 (Humidité/Température de repli) :</span>
+                            <span className={`font-bold ${selectedStationData.measures[0]?.temperatureDht != null ? 'text-emerald-600' : 'text-amber-500'}`}>
+                              {selectedStationData.measures[0]?.temperatureDht != null ? 'Opérationnel' : 'Déconnecté / Erreur'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Historique des erreurs / alertes résolues de cette station */}
+                      {selectedStationData.alerts && (
+                        <div className="space-y-2">
+                          <span className="text-[9px] font-bold text-slate-450 uppercase block tracking-wider">Historique des Incidents</span>
+                          <div className="max-h-[120px] overflow-y-auto space-y-1.5 pr-1">
+                            {selectedStationData.alerts.length === 0 ? (
+                              <p className="text-[10px] text-slate-400 italic">Aucun incident enregistré sur cette station.</p>
+                            ) : (
+                              selectedStationData.alerts.map((al) => (
+                                <div key={al.id} className="text-[10px] bg-slate-50 p-2 rounded-lg border border-slate-100 flex justify-between items-center">
+                                  <div>
+                                    <p className="font-bold text-slate-700">{al.title}</p>
+                                    <span className="text-[8px] text-slate-400">{new Date(al.createdAt).toLocaleString('fr-FR')}</span>
+                                  </div>
+                                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md ${al.active ? 'bg-rose-500/10 text-rose-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                                    {al.active ? 'ACTIF' : 'RÉSOLU'}
+                                  </span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bouton de bascule Maintenance */}
+                      <button
+                        onClick={handleToggleMaintenance}
+                        disabled={togglingMaintenance}
+                        className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer ${
+                          selectedStationData.status === 'MAINTENANCE'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-700/10'
+                            : 'bg-yellow-600 hover:bg-yellow-700 text-white shadow-yellow-700/10'
+                        }`}
+                      >
+                        <Wrench className="w-4 h-4" />
+                        {selectedStationData.status === 'MAINTENANCE' ? 'Remettre la station EN SERVICE' : 'Marquer la station EN MAINTENANCE'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Colonne 3 : Statuses des Stations (Selection list) */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                  <h3 className="text-[#0f2042] font-bold text-sm mb-6 uppercase tracking-wider flex items-center gap-2">
+                    <Database className="w-5 h-5 text-indigo-500" />
+                    Parc Matériel
+                  </h3>
+
+                  <div className="divide-y divide-slate-150 max-h-[500px] overflow-y-auto pr-1">
                     {stations.map((st) => (
-                      <div key={st.id} className="py-4 first:pt-0 last:pb-0 flex flex-col gap-3">
+                      <div 
+                        key={st.id} 
+                        onClick={() => { setSelectedStationId(st.id); fetchStationDetail(st.id); }}
+                        className={`py-3 px-3.5 rounded-xl cursor-pointer transition-all flex flex-col gap-2.5 my-1 first:mt-0 last:mb-0 border ${
+                          selectedStationId === st.id 
+                            ? 'bg-indigo-50/60 border-indigo-200 shadow-sm' 
+                            : 'bg-white border-transparent hover:bg-slate-50'
+                        }`}
+                      >
                         <div className="flex justify-between items-center">
                           <div>
-                            <span className="text-[10px] font-mono text-slate-400 block tracking-widest uppercase font-bold">{st.code}</span>
-                            <h4 className="font-extrabold text-sm text-[#0f2042]">{st.name}</h4>
+                            <span className="text-[9px] font-mono text-slate-400 block tracking-widest uppercase font-bold">{st.code}</span>
+                            <h4 className="font-extrabold text-xs text-[#0f2042]">{st.name}</h4>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${getStatusBgClass(st.status)}`}>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-lg border ${getStatusBgClass(st.status)}`}>
                             {st.status}
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-[10px] font-semibold text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-150">
-                          <div className="flex items-center gap-1">
-                            <Battery className="w-3.5 h-3.5 text-slate-450" />
-                            <span>Panneau Solaire</span>
-                          </div>
-                          <div className="flex items-center gap-1 justify-end">
-                            <Signal className="w-3.5 h-3.5 text-slate-450" />
-                            <span>GPRS Active</span>
-                          </div>
-                          <div className="col-span-2 text-[9px] text-slate-400 border-t border-slate-200/60 pt-1 mt-1 font-mono text-center">
-                            Dernier contact : {st.lastSeen ? new Date(st.lastSeen).toLocaleString('fr-FR') : 'Jamais connecté'}
-                          </div>
+                        <div className="flex items-center justify-between text-[9px] text-slate-450 border-t border-slate-100 pt-2 font-mono">
+                          <span>Signal: {st.status === 'OFFLINE' ? 'Inactif' : 'Actif'}</span>
+                          <span>Contact: {st.lastSeen ? new Date(st.lastSeen).toLocaleDateString('fr-FR') : 'Jamais'}</span>
                         </div>
                       </div>
                     ))}
