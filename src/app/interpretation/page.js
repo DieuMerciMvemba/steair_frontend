@@ -152,11 +152,11 @@ export default function Interpretation() {
       <div className="p-6 border-b border-slate-750 flex flex-col items-center text-center">
         <div className="w-20 h-20 bg-slate-700/50 rounded-full border-2 border-indigo-400/30 flex items-center justify-center mb-4 overflow-hidden relative shadow-inner">
           <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xl uppercase">
-            {user?.username ? user.username.substring(0, 2) : 'GP'}
+            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'GP')}
           </div>
         </div>
         <h3 className="font-bold text-lg tracking-wide uppercase truncate max-w-full">
-          {user?.username || 'Visiteur'}
+          {user?.name || user?.email || 'Visiteur'}
         </h3>
         <span className="text-xs text-slate-400 truncate max-w-full mb-2">
           {user?.email || 'Lecteur public'}

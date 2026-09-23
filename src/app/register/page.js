@@ -104,8 +104,6 @@ export default function Register() {
               >
                 <option value="public">Grand Public / Agriculteur</option>
                 <option value="researcher">Scientifique / Chercheur (Data Access)</option>
-                <option value="tech">Opérateur / Technicien local (Diagnostics)</option>
-                <option value="admin">Administrateur National / SuperAdmin</option>
               </select>
             </div>
           </div>
