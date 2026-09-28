@@ -662,57 +662,73 @@ export default function HistoryPage() {
                       </div>
                     </div>
 
-                    {/* Cards min/max/moyenne des 2 capteurs */}
+                    {/* Cards min/max/moyenne des 2 capteurs — Design Pro Météo Clean */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Temp BMP280 */}
-                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200/80 shadow-xs">
-                        <div className="text-xs font-bold text-amber-900 mb-1">Température BMP280</div>
-                        <div className="text-xl font-extrabold text-amber-950">
-                          {dailySummary.summary.temperatureBmp.avg !== null ? `${dailySummary.summary.temperatureBmp.avg} °C` : 'N/A'}
-                          <span className="text-xs font-normal text-amber-700 ml-1.5">(Moy)</span>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Température BMP280</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.temperatureBmp.avg !== null ? `${dailySummary.summary.temperatureBmp.avg} °C` : 'N/A'}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-[11px] font-semibold text-amber-800 mt-3 pt-2 border-t border-amber-200/60">
-                          <span>Min: <strong className="text-amber-950">{dailySummary.summary.temperatureBmp.min ?? '-'} °C</strong></span>
-                          <span>Max: <strong className="text-amber-950">{dailySummary.summary.temperatureBmp.max ?? '-'} °C</strong></span>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.min ?? '-'} °C</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.max ?? '-'} °C</strong></div>
                         </div>
                       </div>
 
                       {/* Temp DHT22 */}
-                      <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-4 rounded-xl border border-sky-200/80 shadow-xs">
-                        <div className="text-xs font-bold text-sky-900 mb-1">Température DHT22</div>
-                        <div className="text-xl font-extrabold text-sky-950">
-                          {dailySummary.summary.temperatureDht22.avg !== null ? `${dailySummary.summary.temperatureDht22.avg} °C` : 'N/A'}
-                          <span className="text-xs font-normal text-sky-700 ml-1.5">(Moy)</span>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Température DHT22</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.temperatureDht22.avg !== null ? `${dailySummary.summary.temperatureDht22.avg} °C` : 'N/A'}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-[11px] font-semibold text-sky-800 mt-3 pt-2 border-t border-sky-200/60">
-                          <span>Min: <strong className="text-sky-950">{dailySummary.summary.temperatureDht22.min ?? '-'} °C</strong></span>
-                          <span>Max: <strong className="text-sky-950">{dailySummary.summary.temperatureDht22.max ?? '-'} °C</strong></span>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.min ?? '-'} °C</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.max ?? '-'} °C</strong></div>
                         </div>
                       </div>
 
                       {/* Humidité DHT22 */}
-                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-200/80 shadow-xs">
-                        <div className="text-xs font-bold text-emerald-900 mb-1">Humidité DHT22</div>
-                        <div className="text-xl font-extrabold text-emerald-950">
-                          {dailySummary.summary.humidityDht22.avg !== null ? `${dailySummary.summary.humidityDht22.avg} %` : 'N/A'}
-                          <span className="text-xs font-normal text-emerald-700 ml-1.5">(Moy)</span>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Humidité DHT22</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.humidityDht22.avg !== null ? `${dailySummary.summary.humidityDht22.avg} %` : 'N/A'}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-[11px] font-semibold text-emerald-800 mt-3 pt-2 border-t border-emerald-200/60">
-                          <span>Min: <strong className="text-emerald-950">{dailySummary.summary.humidityDht22.min ?? '-'} %</strong></span>
-                          <span>Max: <strong className="text-emerald-950">{dailySummary.summary.humidityDht22.max ?? '-'} %</strong></span>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.min ?? '-'} %</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.max ?? '-'} %</strong></div>
                         </div>
                       </div>
 
                       {/* Pression BMP280 */}
-                      <div className="bg-gradient-to-br from-indigo-50 to-slate-50 p-4 rounded-xl border border-indigo-200/80 shadow-xs">
-                        <div className="text-xs font-bold text-indigo-900 mb-1">Pression BMP280</div>
-                        <div className="text-xl font-extrabold text-indigo-950">
-                          {dailySummary.summary.pressureBmp.avg !== null ? `${dailySummary.summary.pressureBmp.avg} hPa` : 'N/A'}
-                          <span className="text-xs font-normal text-indigo-700 ml-1.5">(Moy)</span>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Pression BMP280</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.pressureBmp.avg !== null ? `${dailySummary.summary.pressureBmp.avg} hPa` : 'N/A'}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-[11px] font-semibold text-indigo-800 mt-3 pt-2 border-t border-indigo-200/60">
-                          <span>Min: <strong className="text-indigo-950">{dailySummary.summary.pressureBmp.min ?? '-'} hPa</strong></span>
-                          <span>Max: <strong className="text-indigo-950">{dailySummary.summary.pressureBmp.max ?? '-'} hPa</strong></span>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.min ?? '-'} hPa</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.max ?? '-'} hPa</strong></div>
                         </div>
                       </div>
                     </div>
@@ -748,18 +764,18 @@ export default function HistoryPage() {
                               <td className="px-4 py-3 font-semibold text-emerald-700">{obs.humidityDht22 !== null ? `${obs.humidityDht22.toFixed(0)} %` : '-'}</td>
                               <td className="px-4 py-3 text-indigo-900 font-mono">{obs.pressureBmp !== null ? `${obs.pressureBmp.toFixed(2)} hPa` : '-'}</td>
                               <td className="px-4 py-3">
-                                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${obs.rain ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'}`}>
-                                  {obs.rain ? '🌧️ Pluie' : 'Sec'}
+                                <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${obs.rain ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                                  {obs.rain ? 'Pluie' : 'Sec'}
                                 </span>
                               </td>
                               <td className="px-4 py-3">
                                 {obs.isParasite ? (
                                   <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                    ⚠️ Parasite/Init
+                                    Parasite / Init
                                   </span>
                                 ) : (
                                   <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    ✅ Valide
+                                    Valide
                                   </span>
                                 )}
                               </td>
