@@ -41,13 +41,39 @@ export default function HistoryPage() {
     maxHumidity: '',
     alertOnly: false
   });
-  const [viewMode, setViewMode] = useState('charts'); // charts, table
+  const [filterParasites, setFilterParasites] = useState(true);
+  const [dailyDate, setDailyDate] = useState('2026-09-21');
+  const [dailySummary, setDailySummary] = useState(null);
+  const [loadingDaily, setLoadingDaily] = useState(false);
+
+  const [viewMode, setViewMode] = useState('daily'); // daily, charts, table
   const [stats, setStats] = useState(null);
   const [backendError, setBackendError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
   const currentRole = user?.role || 'public';
+
+  const fetchDailySummary = useCallback(async () => {
+    if (!dailyDate) return;
+    setLoadingDaily(true);
+    try {
+      let url = `/api/daily-summary?date=${dailyDate}&filterParasites=${filterParasites ? 'true' : 'false'}`;
+      if (selectedStationId) url += `&stationId=${selectedStationId}`;
+      const response = await axios.get(url);
+      setDailySummary(response.data);
+    } catch (err) {
+      console.error("Erreur lors du chargement du bilan journalier", err);
+    } finally {
+      setLoadingDaily(false);
+    }
+  }, [dailyDate, selectedStationId, filterParasites]);
+
+  useEffect(() => {
+    if (user && viewMode === 'daily') {
+      fetchDailySummary();
+    }
+  }, [user, viewMode, fetchDailySummary]);
 
   // Load stations on mount
   useEffect(() => {
@@ -501,6 +527,21 @@ export default function HistoryPage() {
                   />
                   <label htmlFor="alertOnly" className="text-sm font-semibold text-slate-700">Uniquement les alertes actives</label>
                 </div>
+                <div className="sm:col-span-4 flex items-center gap-2 mt-2 bg-amber-50/60 p-3 rounded-xl border border-amber-200/60">
+                  <input
+                    type="checkbox"
+                    id="filterParasites"
+                    checked={filterParasites}
+                    onChange={(e) => setFilterParasites(e.target.checked)}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="filterParasites" className="text-xs font-bold text-amber-900 cursor-pointer">
+                    Filtrer automatiquement les anomalies d'initialisation (P &lt; 800 hPa / 22.23°C / 0% hum.)
+                  </label>
+                  <span className="text-[11px] text-amber-700 font-medium ml-auto hidden sm:inline">
+                    ({filterParasites ? 'Données nettoyées pour rapports' : 'Télémétrie brute intégrale'})
+                  </span>
+                </div>
                 <div className="sm:col-span-2 flex justify-end gap-2 mt-4">
                   <button
                     onClick={resetFilters}
@@ -517,11 +558,20 @@ export default function HistoryPage() {
           {/* Section d'affichage des graphiques / tableaux */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6 flex-wrap gap-4 border-b border-slate-100 pb-4">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setViewMode('daily')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                    viewMode === 'daily' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4 text-amber-400" />
+                  Bilan Journalier (WU)
+                </button>
                 <button
                   onClick={() => setViewMode('charts')}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                    viewMode === 'charts' ? 'bg-[#0f2042] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    viewMode === 'charts' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -530,15 +580,17 @@ export default function HistoryPage() {
                 <button
                   onClick={() => setViewMode('table')}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                    viewMode === 'table' ? 'bg-[#0f2042] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    viewMode === 'table' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   <Table className="w-4 h-4" />
-                  Tableau
+                  Tableau Brut
                 </button>
               </div>
-              <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                {data.length} enregistrements trouvés
+              <div className="flex items-center gap-3">
+                <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                  {viewMode === 'daily' && dailySummary ? `${dailySummary.validCount} / ${dailySummary.totalCount} relevés` : `${data.length} enregistrements`}
+                </div>
               </div>
             </div>
 
@@ -546,20 +598,178 @@ export default function HistoryPage() {
             {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') && (
               <div className="flex justify-end gap-3 mb-6">
                 <button onClick={handleExportJSON} className="flex items-center gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer">
-                  <FileJson className="w-4 h-4" />
-                  Export JSON
+                  <FileJson className="w-4 h-4 text-amber-400" />
+                  Export JSON {filterParasites ? '(Filtré)' : '(Brut)'}
                 </button>
-                <button onClick={handleExportExcel} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer">
+                <button onClick={handleExportExcel} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm">
                   <FileSpreadsheet className="w-4 h-4" />
-                  Export Excel
+                  Export Excel {filterParasites ? '(Filtré)' : '(Brut)'}
                 </button>
               </div>
             )}
 
-            {/* Vue Graphique */}
-            {loading ? (
-              <div className="h-64 flex justify-center items-center">
-                <Activity className="w-8 h-8 text-indigo-500 animate-spin" />
+            {/* VUE 1 : BILAN JOURNALIER STYLE WEATHER UNDERGROUND */}
+            {viewMode === 'daily' ? (
+              <div className="space-y-6">
+                {/* Date Picker & Presets */}
+                <div className="bg-[#f8fafc] p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-[#0f2042]">Sélection de la Journée :</label>
+                    <input
+                      type="date"
+                      value={dailyDate}
+                      onChange={(e) => setDailyDate(e.target.value)}
+                      className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-semibold text-[#0f2042] focus:outline-none focus:border-[#0f2042]"
+                    />
+                  </div>
+                  <div className="flex gap-2 flex-wrap text-xs">
+                    <span className="text-slate-500 font-semibold flex items-center">Presets :</span>
+                    {['2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22'].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setDailyDate(d)}
+                        className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                          dailyDate === d ? 'bg-[#0f2042] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {d.split('-').slice(1).join('/')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {loadingDaily ? (
+                  <div className="h-64 flex justify-center items-center">
+                    <Activity className="w-8 h-8 text-indigo-500 animate-spin" />
+                  </div>
+                ) : !dailySummary ? (
+                  <div className="h-48 flex justify-center items-center text-slate-400 font-medium">Aucune donnée trouvée pour cette date.</div>
+                ) : (
+                  <>
+                    {/* Header Banner */}
+                    <div className="bg-gradient-to-r from-[#0f2042] to-[#1e3a8a] text-white p-5 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
+                      <div>
+                        <h3 className="text-base font-bold flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-amber-400" />
+                          Journée du {dailySummary.date} ({dailySummary.dayName})
+                        </h3>
+                        <p className="text-xs text-slate-300 mt-1">
+                          Station Météo SteAir Pro — {dailySummary.validCount} relevés valides sur {dailySummary.totalCount} mesures totales
+                        </p>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-xs font-semibold">
+                        Biais Thermique Moyen ΔT (BMP vs DHT22) : <span className="text-amber-300 font-bold">{dailySummary.summary.biasDelta !== null ? `+${dailySummary.summary.biasDelta} °C` : 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    {/* Cards min/max/moyenne des 2 capteurs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Temp BMP280 */}
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200/80 shadow-xs">
+                        <div className="text-xs font-bold text-amber-900 mb-1">Température BMP280</div>
+                        <div className="text-xl font-extrabold text-amber-950">
+                          {dailySummary.summary.temperatureBmp.avg !== null ? `${dailySummary.summary.temperatureBmp.avg} °C` : 'N/A'}
+                          <span className="text-xs font-normal text-amber-700 ml-1.5">(Moy)</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-semibold text-amber-800 mt-3 pt-2 border-t border-amber-200/60">
+                          <span>Min: <strong className="text-amber-950">{dailySummary.summary.temperatureBmp.min ?? '-'} °C</strong></span>
+                          <span>Max: <strong className="text-amber-950">{dailySummary.summary.temperatureBmp.max ?? '-'} °C</strong></span>
+                        </div>
+                      </div>
+
+                      {/* Temp DHT22 */}
+                      <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-4 rounded-xl border border-sky-200/80 shadow-xs">
+                        <div className="text-xs font-bold text-sky-900 mb-1">Température DHT22</div>
+                        <div className="text-xl font-extrabold text-sky-950">
+                          {dailySummary.summary.temperatureDht22.avg !== null ? `${dailySummary.summary.temperatureDht22.avg} °C` : 'N/A'}
+                          <span className="text-xs font-normal text-sky-700 ml-1.5">(Moy)</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-semibold text-sky-800 mt-3 pt-2 border-t border-sky-200/60">
+                          <span>Min: <strong className="text-sky-950">{dailySummary.summary.temperatureDht22.min ?? '-'} °C</strong></span>
+                          <span>Max: <strong className="text-sky-950">{dailySummary.summary.temperatureDht22.max ?? '-'} °C</strong></span>
+                        </div>
+                      </div>
+
+                      {/* Humidité DHT22 */}
+                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-200/80 shadow-xs">
+                        <div className="text-xs font-bold text-emerald-900 mb-1">Humidité DHT22</div>
+                        <div className="text-xl font-extrabold text-emerald-950">
+                          {dailySummary.summary.humidityDht22.avg !== null ? `${dailySummary.summary.humidityDht22.avg} %` : 'N/A'}
+                          <span className="text-xs font-normal text-emerald-700 ml-1.5">(Moy)</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-semibold text-emerald-800 mt-3 pt-2 border-t border-emerald-200/60">
+                          <span>Min: <strong className="text-emerald-950">{dailySummary.summary.humidityDht22.min ?? '-'} %</strong></span>
+                          <span>Max: <strong className="text-emerald-950">{dailySummary.summary.humidityDht22.max ?? '-'} %</strong></span>
+                        </div>
+                      </div>
+
+                      {/* Pression BMP280 */}
+                      <div className="bg-gradient-to-br from-indigo-50 to-slate-50 p-4 rounded-xl border border-indigo-200/80 shadow-xs">
+                        <div className="text-xs font-bold text-indigo-900 mb-1">Pression BMP280</div>
+                        <div className="text-xl font-extrabold text-indigo-950">
+                          {dailySummary.summary.pressureBmp.avg !== null ? `${dailySummary.summary.pressureBmp.avg} hPa` : 'N/A'}
+                          <span className="text-xs font-normal text-indigo-700 ml-1.5">(Moy)</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-semibold text-indigo-800 mt-3 pt-2 border-t border-indigo-200/60">
+                          <span>Min: <strong className="text-indigo-950">{dailySummary.summary.pressureBmp.min ?? '-'} hPa</strong></span>
+                          <span>Max: <strong className="text-indigo-950">{dailySummary.summary.pressureBmp.max ?? '-'} hPa</strong></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Hourly Table */}
+                    <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+                      <table className="w-full text-xs text-left">
+                        <thead className="uppercase bg-[#0f2042] text-white">
+                          <tr>
+                            <th className="px-4 py-3 font-semibold">Heure</th>
+                            <th className="px-4 py-3 font-semibold">Temp. BMP280 (°C)</th>
+                            <th className="px-4 py-3 font-semibold">Temp. DHT22 (°C)</th>
+                            <th className="px-4 py-3 font-semibold">Écart ΔT (°C)</th>
+                            <th className="px-4 py-3 font-semibold">Humidité DHT22 (%)</th>
+                            <th className="px-4 py-3 font-semibold">Pression BMP280 (hPa)</th>
+                            <th className="px-4 py-3 font-semibold">État Pluie</th>
+                            <th className="px-4 py-3 font-semibold">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 bg-white">
+                          {dailySummary.observations.map((obs) => (
+                            <tr key={obs.id} className={`hover:bg-slate-50 transition-colors ${obs.isParasite ? 'bg-amber-50/40' : ''}`}>
+                              <td className="px-4 py-3 font-mono font-bold text-slate-700">{obs.heure}</td>
+                              <td className="px-4 py-3 font-bold text-amber-700">{obs.temperatureBmp !== null ? `${obs.temperatureBmp.toFixed(1)} °C` : '-'}</td>
+                              <td className="px-4 py-3 font-bold text-sky-700">{obs.temperatureDht22 !== null ? `${obs.temperatureDht22.toFixed(1)} °C` : '-'}</td>
+                              <td className="px-4 py-3 font-semibold text-slate-600">
+                                {obs.deltaTemp !== null ? (
+                                  <span className={obs.deltaTemp > 2 ? 'text-rose-600 font-bold' : 'text-slate-600'}>
+                                    {obs.deltaTemp > 0 ? `+${obs.deltaTemp}` : obs.deltaTemp} °C
+                                  </span>
+                                ) : '-'}
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-emerald-700">{obs.humidityDht22 !== null ? `${obs.humidityDht22.toFixed(0)} %` : '-'}</td>
+                              <td className="px-4 py-3 text-indigo-900 font-mono">{obs.pressureBmp !== null ? `${obs.pressureBmp.toFixed(2)} hPa` : '-'}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${obs.rain ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'}`}>
+                                  {obs.rain ? '🌧️ Pluie' : 'Sec'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                {obs.isParasite ? (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    ⚠️ Parasite/Init
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    ✅ Valide
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </div>
             ) : viewMode === 'charts' ? (
               <div className="bg-[#fcfdfe] p-4 rounded-xl border border-slate-100">

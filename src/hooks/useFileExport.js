@@ -5,12 +5,16 @@ export function useFileExport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const exportJSON = async (stationId) => {
+  const exportJSON = async (stationId, filterParasites = false) => {
     setLoading(true)
     setError(null)
     try {
-      const stParam = stationId ? `?stationId=${stationId}` : '';
-      const response = await axios.get(`/api/export/json${stParam}`, { responseType: 'blob' })
+      const params = new URLSearchParams();
+      if (stationId) params.append('stationId', stationId);
+      if (filterParasites) params.append('filterParasites', 'true');
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await axios.get(`/api/export/json${queryString}`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
@@ -30,12 +34,16 @@ export function useFileExport() {
     }
   }
 
-  const exportExcel = async (stationId) => {
+  const exportExcel = async (stationId, filterParasites = false) => {
     setLoading(true)
     setError(null)
     try {
-      const stParam = stationId ? `?stationId=${stationId}` : '';
-      const response = await axios.get(`/api/export/excel${stParam}`, { responseType: 'blob' })
+      const params = new URLSearchParams();
+      if (stationId) params.append('stationId', stationId);
+      if (filterParasites) params.append('filterParasites', 'true');
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await axios.get(`/api/export/excel${queryString}`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
