@@ -7,7 +7,6 @@ import {
   Activity, 
   RotateCcw, 
   GraduationCap, 
-  HelpCircle, 
   Wrench, 
   Settings, 
   MessageSquare,
@@ -16,10 +15,12 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Shield,
   User,
   Crown,
-  Compass
+  Compass,
+  FileText,
+  Signal,
+  Cpu
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -55,7 +56,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
 
   const currentRole = user?.role || "public";
 
-  // Navigation Items according to application routes & roles
+  // Navigation Items according to application routes & roles (matching exact previous naming)
   const menuItems = [
     {
       label: "Dashboard",
@@ -64,15 +65,9 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
       show: true,
     },
     {
-      label: "Carte & Réseau",
-      href: "/",
-      icon: Compass,
-      show: true,
-    },
-    {
       label: "Historique",
       href: "/history",
-      icon: RotateCcw,
+      icon: FileText,
       show: true,
     },
     {
@@ -84,25 +79,25 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
     {
       label: "Santé & Alertes",
       href: "/diagnostics",
-      icon: Activity,
+      icon: Signal,
       show: user && (user.role === "admin" || user.role === "tech"),
     },
     {
       label: "Maintenance",
       href: "/maintenance",
-      icon: Wrench,
+      icon: Cpu,
       show: user && (user.role === "admin" || user.role === "tech"),
     },
     {
-      label: "Réglages Admin",
+      label: "Supervision",
       href: "/supervision",
-      icon: Settings,
+      icon: Compass,
       show: user && user.role === "admin",
     },
     {
-      label: "Support & Aide",
+      label: "Interprétation",
       href: "/interpretation",
-      icon: HelpCircle,
+      icon: MessageSquare,
       show: true,
     },
   ];
@@ -146,19 +141,17 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
           <div className={`flex items-center justify-between pb-6 pt-1 ${isCondensed ? "px-1 flex-col gap-3" : "px-2"}`}>
             <Link href="/" className="flex items-center gap-3 group overflow-hidden">
               {/* Logo Emblem */}
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-400 p-0.5 shadow-lg group-hover:scale-105 transition-transform shrink-0">
-                <div className="w-full h-full bg-[#1e0552] rounded-[14px] flex items-center justify-center">
-                  <span className="font-extrabold text-white text-xs tracking-widest">ES</span>
-                </div>
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-105 transition-all shrink-0">
+                <Activity className="w-5 h-5 text-white" />
               </div>
               
               {!isCondensed && (
                 <div className="flex flex-col">
-                  <span className="font-black text-white text-lg tracking-wider uppercase leading-none font-sans">
-                    ESMICOM
-                  </span>
-                  <span className="text-[10px] text-purple-200/70 font-semibold tracking-widest uppercase mt-0.5">
+                  <span className="font-extrabold text-white text-base tracking-wider uppercase leading-none font-sans">
                     Station Météo
+                  </span>
+                  <span className="text-[10px] text-indigo-300/80 font-semibold tracking-widest uppercase mt-1">
+                    Système Connecté
                   </span>
                 </div>
               )}
@@ -168,7 +161,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
             {!isMobile && (
               <button
                 onClick={toggleCollapse}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all border border-white/10 active:scale-95"
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-all border border-slate-700/50 active:scale-95 cursor-pointer"
                 title={collapsed ? "Déplier le menu" : "Replier le menu"}
               >
                 {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -189,7 +182,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
           {/* Section Title */}
           {!isCondensed && (
             <div className="px-3 mb-2">
-              <span className="text-[11px] font-bold text-purple-200/70 uppercase tracking-widest">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Menu
               </span>
             </div>
@@ -211,11 +204,11 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
                     isCondensed ? "justify-center px-0 py-3" : ""
                   } ${
                     isActive
-                      ? "bg-white text-[#180048] font-bold shadow-lg shadow-purple-950/20 scale-[1.02]"
-                      : "text-white/90 hover:bg-white/15 hover:text-white hover:translate-x-1"
+                      ? "bg-white text-[#0f2042] font-bold shadow-lg shadow-black/20 scale-[1.02]"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white hover:translate-x-1"
                   }`}
                 >
-                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-[#180048]" : "text-white"}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-[#0f2042]" : "text-indigo-400"}`} />
                   {!isCondensed && (
                     <span className="text-sm tracking-wide truncate">{item.label}</span>
                   )}
@@ -226,10 +219,10 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
         </div>
 
         {/* Bottom Section: User Profile & Actions */}
-        <div className="pt-4 border-t border-white/15 space-y-2.5">
+        <div className="pt-4 border-t border-slate-750 space-y-2.5">
           {/* User Card */}
           <div
-            className={`bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-2.5 flex items-center ${
+            className={`bg-slate-800/60 border border-slate-700/50 rounded-2xl p-2.5 flex items-center ${
               isCondensed ? "justify-center p-2" : "gap-3"
             } shadow-inner`}
             title={isCondensed && user ? `${user.name || user.email}` : undefined}
@@ -244,8 +237,8 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
                 <span className="text-xs font-bold text-white truncate">
                   {user?.name || user?.email?.split("@")[0] || "Super Administrateur"}
                 </span>
-                <span className="text-[11px] text-purple-200/70 truncate">
-                  {user?.email || "admin@esmicom.cd"}
+                <span className="text-[11px] text-slate-400 truncate">
+                  {user?.email || "admin@stationmeteo.cd"}
                 </span>
               </div>
             )}
@@ -253,8 +246,8 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
 
           {/* Role Pill Badge */}
           {!isCondensed && (
-            <div className="bg-white/15 border border-white/15 rounded-2xl py-2 px-3 text-center flex items-center justify-center gap-2 text-xs font-extrabold text-white shadow-sm">
-              <RoleIcon className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <div className="bg-indigo-500/15 border border-indigo-500/30 rounded-2xl py-2 px-3 text-center flex items-center justify-center gap-2 text-xs font-extrabold text-indigo-300 shadow-sm">
+              <RoleIcon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
               <span className="truncate">{roleInfo.label}</span>
             </div>
           )}
@@ -264,18 +257,18 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
             <button
               onClick={logout}
               title={isCondensed ? "Déconnexion" : undefined}
-              className={`w-full bg-purple-950/40 hover:bg-rose-600/40 text-white border border-purple-400/30 hover:border-rose-400/50 rounded-2xl ${
+              className={`w-full bg-rose-500/10 hover:bg-rose-600/30 text-rose-300 hover:text-white border border-rose-500/20 hover:border-rose-400/40 rounded-2xl ${
                 isCondensed ? "py-3 px-0 justify-center" : "py-2.5 px-4 justify-center gap-2"
               } flex items-center font-bold text-xs tracking-wide transition-all shadow-md active:scale-95 cursor-pointer`}
             >
-              <LogOut className="w-4 h-4 text-rose-300 shrink-0" />
+              <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
               {!isCondensed && <span>Déconnexion</span>}
             </button>
           ) : (
             <Link
               href="/login"
               title={isCondensed ? "Connexion" : undefined}
-              className={`w-full bg-white text-[#180048] hover:bg-purple-50 rounded-2xl ${
+              className={`w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl ${
                 isCondensed ? "py-3 px-0 justify-center" : "py-2.5 px-4 justify-center gap-2"
               } flex items-center font-bold text-xs tracking-wide transition-all shadow-md active:scale-95`}
             >
@@ -292,7 +285,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
     <>
       {/* 1. DESKTOP SIDEBAR */}
       <aside
-        className={`hidden md:flex flex-col h-full bg-gradient-to-b from-[#6b00ff] via-[#5b00ea] to-[#4900c9] text-white rounded-[28px] p-4 shadow-[0_15px_40px_rgba(98,0,238,0.35)] transition-all duration-300 shrink-0 ${
+        className={`hidden md:flex flex-col h-full bg-[#0f2042] text-white rounded-[28px] p-4 shadow-2xl border border-slate-750 transition-all duration-300 shrink-0 ${
           collapsed ? "w-[84px]" : "w-[270px]"
         }`}
       >
@@ -306,7 +299,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen = () => {} }
           onClick={() => setMobileOpen(false)}
         >
           <div
-            className="w-[280px] max-w-[85vw] h-full bg-gradient-to-b from-[#6b00ff] via-[#5b00ea] to-[#4900c9] text-white p-5 shadow-2xl animate-in slide-in-from-left duration-300 flex flex-col"
+            className="w-[280px] max-w-[85vw] h-full bg-[#0f2042] text-white p-5 shadow-2xl animate-in slide-in-from-left duration-300 flex flex-col border-r border-slate-750"
             onClick={(e) => e.stopPropagation()}
           >
             {renderContent(true)}
