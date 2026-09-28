@@ -14,6 +14,7 @@ import { ToastContainer } from '../../components/Toast';
 import { WeatherChart, MultiLineChart } from '../../components/WeatherChart';
 import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../../components/Sidebar';
 
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -136,130 +137,31 @@ export default function Dashboard() {
   
   const batteryPct = realtimeData?.batteryVoltage ? getBatteryPercentage(realtimeData.batteryVoltage) : 85;
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full text-white">
-      {/* Profil Utilisateur */}
-      <div className="p-6 border-b border-slate-700/50 flex flex-col items-center text-center">
-        <div className="w-20 h-20 bg-slate-700/50 rounded-full border-2 border-indigo-400/30 flex items-center justify-center mb-4 overflow-hidden relative shadow-inner">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xl uppercase">
-            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'GP')}
-          </div>
-        </div>
-        <h3 className="font-bold text-lg tracking-wide uppercase truncate max-w-full">
-          {user?.name || user?.email || 'Visiteur'}
-        </h3>
-        <span className="text-xs text-slate-400 truncate max-w-full mb-2">
-          {user?.email || 'Lecteur public'}
-        </span>
-        <span className="text-[10px] uppercase font-bold tracking-widest bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
-          {currentRole === 'admin' ? 'SuperAdmin' : currentRole === 'tech' ? 'Technicien' : currentRole === 'researcher' ? 'Chercheur' : 'Public'}
-        </span>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Home className="w-4 h-4 text-indigo-400" />
-          Carte Réseau
-        </Link>
-        <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
-          <Activity className="w-4 h-4 text-indigo-400" />
-          Dashboard
-        </button>
-        <Link href="/history" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <FileText className="w-4 h-4 text-indigo-400" />
-          Historique
-        </Link>
-
-        {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
-          <Link href="/analysis" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
-            Analyse Climatique
-          </Link>
-        )}
-
-        {user && (user.role === 'admin' || user.role === 'tech') && (
-          <>
-            <Link href="/diagnostics" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-              <Signal className="w-4 h-4 text-indigo-400" />
-              Santé & Alertes
-            </Link>
-            <Link href="/maintenance" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-              <Cpu className="w-4 h-4 text-indigo-400" />
-              Maintenance
-            </Link>
-          </>
-        )}
-
-        {user && user.role === 'admin' && (
-          <Link href="/supervision" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <Compass className="w-4 h-4 text-indigo-400" />
-            Supervision
-          </Link>
-        )}
-
-        <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <MessageSquare className="w-4 h-4 text-indigo-400" />
-          Interprétation
-        </Link>
-      </nav>
-
-      {/* Déconnexion */}
-      <div className="p-4 border-t border-slate-750">
-        {user ? (
-          <button onClick={logout} className="w-full flex items-center justify-center gap-3 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/25 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer">
-            <LogOut className="w-4 h-4" />
-            Déconnexion
-          </button>
-        ) : (
-          <Link href="/login" className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-950/40">
-            <LogIn className="w-4 h-4" />
-            Se Connecter
-          </Link>
-        )}
-      </div>
-    </div>
-  );
 
   return (
-    <div className="fixed inset-0 z-[100] flex bg-[#f4f6f9] text-slate-800 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex bg-[#090b14] text-slate-800 font-sans overflow-hidden p-2 md:p-3 gap-2 md:gap-3">
       
-      {/* 1. SIDEBAR DESKTOP */}
-      <aside className="w-64 bg-[#0f2042] border-r border-slate-750 shrink-0 md:flex flex-col hidden shadow-2xl">
-        <SidebarContent />
-      </aside>
+      {/* SIDEBAR COMPONENT (DESKTOP & MOBILE) */}
+      <Sidebar mobileOpen={sidebarOpen} setMobileOpen={setSidebarOpen} />
 
-      {/* 2. SIDEBAR DRAWER MOBILE */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)}>
-          <aside className="w-64 bg-[#0f2042] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-250" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-end p-4">
-              <button onClick={() => setSidebarOpen(false)} className="text-white p-1.5 hover:bg-white/5 rounded-lg">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
-
-      {/* 3. ZONE PRINCIPALE DE CONTENU */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* ZONE PRINCIPALE DE CONTENU */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f6f9] rounded-[24px] shadow-2xl border border-slate-800/20">
         
         {/* Top Header Bar mobile & desktop */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all">
-              <Menu className="w-6 h-6" />
+        <header className="h-14 md:h-16 bg-white border-b border-slate-200 px-3 md:px-6 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-1.5 hover:bg-slate-100 rounded-xl transition-all shrink-0">
+              <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block">
+            <h2 className="text-sm md:text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block truncate">
               {currentRole === 'admin' ? 'Supervision' : currentRole === 'tech' ? 'Technique' : currentRole === 'researcher' ? 'Analyse' : 'Météo'}
             </h2>
             {stations.length > 0 && (
               <select
                 value={selectedStationId}
                 onChange={(e) => setSelectedStationId(e.target.value)}
-                className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
+                className="bg-slate-100 border border-slate-200 rounded-xl px-2 md:px-3 py-1.5 text-[11px] md:text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm max-w-[140px] md:max-w-none truncate"
               >
                 {stations.map((st) => (
                   <option key={st.id} value={st.id}>
@@ -269,13 +171,13 @@ export default function Dashboard() {
               </select>
             )}
           </div>
-          <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+          <div className="text-[10px] md:text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border border-slate-200 shrink-0">
             ● Station
           </div>
         </header>
 
         {/* Espace central de défilement des cartes */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6">
 
           {/* Alerte météo critique */}
           {realtimeData?.alertActive && (
@@ -293,94 +195,94 @@ export default function Dashboard() {
 
           {/* SECTION : Cartes de diagnostics (Grid) */}
           {realtimeData ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
               
               {/* Temp BMP280 Card */}
-              <div className="bg-[#0f2042] text-white rounded-xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between h-36 relative overflow-hidden group">
-                <div className="absolute right-4 top-4 p-2 bg-white/10 rounded-xl">
-                  <Thermometer className="w-5 h-5 text-indigo-300" />
+              <div className="bg-[#0f2042] text-white rounded-xl p-4 md:p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between min-h-[120px] md:h-36 relative overflow-hidden group col-span-2 sm:col-span-1">
+                <div className="absolute right-3 top-3 md:right-4 md:top-4 p-1.5 md:p-2 bg-white/10 rounded-xl">
+                  <Thermometer className="w-4 h-4 md:w-5 md:h-5 text-indigo-300" />
                 </div>
                 <div>
-                  <span className="text-slate-300 text-xs font-bold uppercase tracking-wider block mb-1">Température (BMP280)</span>
-                  <span className="text-3xl font-extrabold tracking-tight">
+                  <span className="text-slate-300 text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Température (BMP280)</span>
+                  <span className="text-2xl md:text-3xl font-extrabold tracking-tight">
                     {realtimeData.temperatureBmp !== null && realtimeData.temperatureBmp !== undefined 
                       ? realtimeData.temperatureBmp.toFixed(1) 
                       : (realtimeData.temperature !== null && realtimeData.temperature !== undefined ? realtimeData.temperature.toFixed(1) : '--.-')
-                    } <span className="text-base font-light text-slate-400">°C</span>
+                    } <span className="text-sm md:text-base font-light text-slate-400">°C</span>
                   </span>
                 </div>
-                <div className="text-[10px] text-emerald-400 font-semibold tracking-wide">
-                  ● Capteur Barométrique (Précis)
+                <div className="text-[9px] md:text-[10px] text-emerald-400 font-semibold tracking-wide">
+                  Capteur Barométrique
                 </div>
               </div>
 
               {/* Temp DHT11 Card */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
-                <div className="absolute right-4 top-4 p-2 bg-indigo-500/10 rounded-xl text-indigo-600">
-                  <Thermometer className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between min-h-[120px] md:h-36 relative">
+                <div className="absolute right-3 top-3 md:right-4 md:top-4 p-1.5 md:p-2 bg-indigo-500/10 rounded-xl text-indigo-600">
+                  <Thermometer className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div>
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Température (DHT11)</span>
-                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                  <span className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Température (DHT22)</span>
+                  <span className="text-2xl md:text-3xl font-extrabold text-[#0f2042]">
                     {realtimeData.temperatureDht !== null && realtimeData.temperatureDht !== undefined 
                       ? realtimeData.temperatureDht.toFixed(1) 
                       : '--.-'
-                    } <span className="text-base font-light text-slate-400">°C</span>
+                    } <span className="text-sm md:text-base font-light text-slate-400">°C</span>
                   </span>
                 </div>
-                <div className="text-[10px] text-indigo-500 font-semibold tracking-wide">
-                  ● Capteur d'Humidité (Repli)
+                <div className="text-[9px] md:text-[10px] text-indigo-500 font-semibold tracking-wide">
+                  Capteur Humidité
                 </div>
               </div>
 
               {/* Humidité Card - Clean white card */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
-                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
-                  <Droplets className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between min-h-[120px] md:h-36 relative">
+                <div className="absolute right-3 top-3 md:right-4 md:top-4 p-1.5 md:p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <Droplets className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div>
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Humidité</span>
-                  <span className="text-3xl font-extrabold text-[#0f2042]">
+                  <span className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Humidité</span>
+                  <span className="text-2xl md:text-3xl font-extrabold text-[#0f2042]">
                     {realtimeData.humidity !== null && realtimeData.humidity !== undefined 
                       ? realtimeData.humidity.toFixed(0) 
                       : '--'
-                    } <span className="text-base font-light text-slate-400">%</span>
+                    } <span className="text-sm md:text-base font-light text-slate-400">%</span>
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-500">
-                  Relative de l'air (DHT11)
+                <div className="text-[9px] md:text-[10px] text-slate-500">
+                  Relative (DHT22)
                 </div>
               </div>
 
               {/* Pression Card - Clean white card */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
-                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
-                  <Gauge className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between min-h-[120px] md:h-36 relative">
+                <div className="absolute right-3 top-3 md:right-4 md:top-4 p-1.5 md:p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <Gauge className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div>
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Pression</span>
-                  <span className="text-3xl font-extrabold text-[#0f2042]">
-                    {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'} <span className="text-base font-light text-slate-400">hPa</span>
+                  <span className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Pression</span>
+                  <span className="text-2xl md:text-3xl font-extrabold text-[#0f2042]">
+                    {realtimeData.pressure ? realtimeData.pressure.toFixed(0) : '--'} <span className="text-sm md:text-base font-light text-slate-400">hPa</span>
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-500">
-                  Barométrique locale (BMP280)
+                <div className="text-[9px] md:text-[10px] text-slate-500">
+                  Barométrique (BMP280)
                 </div>
               </div>
 
-              {/* Pluie / Averses Card - Clean white card */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-36 relative">
-                <div className="absolute right-4 top-4 p-2 bg-amber-500/10 rounded-xl text-amber-500">
-                  <CloudRain className="w-5 h-5" />
+              {/* Pluie / Averses Card */}
+              <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between min-h-[120px] md:h-36 relative">
+                <div className="absolute right-3 top-3 md:right-4 md:top-4 p-1.5 md:p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                  <CloudRain className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div>
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Averses</span>
-                  <span className="text-2xl font-extrabold text-[#0f2042]">
+                  <span className="text-slate-400 text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Averses</span>
+                  <span className="text-xl md:text-2xl font-extrabold text-[#0f2042]">
                     {realtimeData.rain === 1 ? 'Actives' : 'Inactives'}
                   </span>
                 </div>
-                <div className={`text-[10px] font-bold ${realtimeData.rain === 1 ? 'text-rose-500' : 'text-emerald-600'}`}>
-                  {realtimeData.rain === 1 ? '● PLUIE EN COURS' : '● TEMPS SEC'}
+                <div className={`text-[9px] md:text-[10px] font-bold ${realtimeData.rain === 1 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                  {realtimeData.rain === 1 ? 'PLUIE EN COURS' : 'TEMPS SEC'}
                 </div>
               </div>
 
@@ -392,12 +294,12 @@ export default function Dashboard() {
           )}
 
           {/* GRAPHS & GAUGES SECTION (Columns layout) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
             
             {/* Colonne Gauche/Milieu : Graphique Recharts */}
             <div className="lg:col-span-2 space-y-6">
               {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') ? (
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
                   <h3 className="text-[#0f2042] font-bold text-md mb-6 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-amber-500" />
                     Analyse Combinée Température / Humidité
@@ -491,43 +393,43 @@ export default function Dashboard() {
 
           {/* TABLEAU HISTORIQUE (Visible pour admin / tech / chercheur) */}
           {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') && (
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h3 className="text-[#0f2042] font-bold text-md">Historique de la Station</h3>
-                <div className="flex gap-3">
-                  <button onClick={handleExportJSON} className="flex items-center gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
-                    <FileJson className="w-4 h-4" />
-                    Export JSON
+            <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
+              <div className="flex items-center justify-between mb-4 md:mb-6 flex-wrap gap-3">
+                <h3 className="text-[#0f2042] font-bold text-sm md:text-md">Historique de la Station</h3>
+                <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
+                  <button onClick={handleExportJSON} className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-[11px] md:text-xs font-semibold px-3 md:px-4 py-2 md:py-2.5 rounded-xl transition-all cursor-pointer">
+                    <FileJson className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    JSON
                   </button>
-                  <button onClick={handleExportExcel} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
-                    <FileSpreadsheet className="w-4 h-4" />
-                    Export Excel
+                  <button onClick={handleExportExcel} className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[11px] md:text-xs font-semibold px-3 md:px-4 py-2 md:py-2.5 rounded-xl transition-all cursor-pointer">
+                    <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    Excel
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-[#0f2042] text-white">
+              <div className="overflow-x-auto border border-slate-100 rounded-xl -mx-1 md:mx-0">
+                <table className="w-full text-xs md:text-sm text-left min-w-[500px]">
+                  <thead className="text-[10px] md:text-xs uppercase bg-[#0f2042] text-white">
                     <tr>
-                      <th className="px-6 py-4 font-semibold">Date & Heure</th>
-                      <th className="px-6 py-4 font-semibold">Temp.</th>
-                      <th className="px-6 py-4 font-semibold">Humidité</th>
-                      <th className="px-6 py-4 font-semibold">Pression</th>
-                      <th className="px-6 py-4 font-semibold">Pluie</th>
-                      <th className="px-6 py-4 font-semibold">Alerte</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Date & Heure</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Temp.</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Hum.</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Pression</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Pluie</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Alerte</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {history.map((measure) => (
                       <tr key={measure.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 text-slate-500 font-mono">
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-slate-500 font-mono text-[11px] md:text-sm">
                           {new Date(measure.timestamp).toLocaleString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 font-bold text-[#0f2042]">{measure.temperature.toFixed(1)}°C</td>
-                        <td className="px-6 py-4 font-semibold text-slate-700">{measure.humidity.toFixed(0)}%</td>
-                        <td className="px-6 py-4 text-slate-600">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
-                        <td className="px-6 py-4 text-slate-600">{measure.rain === 1 ? 'Pluie (1)' : 'Sec (0)'}</td>
+                        <td className="px-3 md:px-6 py-3 md:py-4 font-bold text-[#0f2042]">{measure.temperature.toFixed(1)}°C</td>
+                        <td className="px-3 md:px-6 py-3 md:py-4 font-semibold text-slate-700">{measure.humidity.toFixed(0)}%</td>
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-slate-600">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-slate-600">{measure.rain === 1 ? 'Pluie' : 'Sec'}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                             measure.alertActive 

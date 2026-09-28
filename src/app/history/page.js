@@ -12,6 +12,7 @@ import { ToastContainer } from '../../components/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useFileExport } from '../../hooks/useFileExport';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../../components/Sidebar';
 
 export default function HistoryPage() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -270,131 +271,30 @@ export default function HistoryPage() {
     }
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full text-white">
-      {/* Profil Utilisateur */}
-      <div className="p-6 border-b border-slate-750 flex flex-col items-center text-center">
-        <div className="w-20 h-20 bg-slate-700/50 rounded-full border-2 border-indigo-400/30 flex items-center justify-center mb-4 overflow-hidden relative shadow-inner">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xl uppercase">
-            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'GP')}
-          </div>
-        </div>
-        <h3 className="font-bold text-lg tracking-wide uppercase truncate max-w-full">
-          {user?.name || user?.email || 'Visiteur'}
-        </h3>
-        <span className="text-xs text-slate-400 truncate max-w-full mb-2">
-          {user?.email || 'Lecteur public'}
-        </span>
-        <span className="text-[10px] uppercase font-bold tracking-widest bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
-          {currentRole === 'admin' ? 'SuperAdmin' : currentRole === 'tech' ? 'Technicien' : currentRole === 'researcher' ? 'Chercheur' : 'Public'}
-        </span>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Home className="w-4 h-4 text-indigo-400" />
-          Carte Réseau
-        </Link>
-        <Link href="/dashboard" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Activity className="w-4 h-4 text-indigo-400" />
-          Dashboard
-        </Link>
-        <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
-          <FileText className="w-4 h-4 text-indigo-400" />
-          Historique
-        </button>
-
-        {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
-          <Link href="/analysis" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
-            Analyse Climatique
-          </Link>
-        )}
-
-        {user && (user.role === 'admin' || user.role === 'tech') && (
-          <>
-            <Link href="/diagnostics" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-              <Signal className="w-4 h-4 text-indigo-400" />
-              Santé & Alertes
-            </Link>
-            <Link href="/maintenance" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-              <Cpu className="w-4 h-4 text-indigo-400" />
-              Maintenance
-            </Link>
-          </>
-        )}
-
-        {user && user.role === 'admin' && (
-          <Link href="/supervision" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <Compass className="w-4 h-4 text-indigo-400" />
-            Supervision
-          </Link>
-        )}
-
-        <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <MessageSquare className="w-4 h-4 text-indigo-400" />
-          Interprétation
-        </Link>
-      </nav>
-
-      {/* Déconnexion */}
-      <div className="p-4 border-t border-slate-750">
-        {user ? (
-          <button onClick={logout} className="w-full flex items-center justify-center gap-3 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/25 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer">
-            <LogOut className="w-4 h-4" />
-            Déconnexion
-          </button>
-        ) : (
-          <Link href="/login" className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-950/40">
-            <LogIn className="w-4 h-4" />
-            Se Connecter
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="fixed inset-0 z-[100] flex bg-[#f4f6f9] text-slate-800 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex bg-[#090b14] text-slate-800 font-sans overflow-hidden p-2 md:p-3 gap-2 md:gap-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
-      {/* 1. SIDEBAR DESKTOP */}
-      <aside className="w-64 bg-[#0f2042] border-r border-slate-750 shrink-0 md:flex flex-col hidden shadow-2xl">
-        <SidebarContent />
-      </aside>
+      {/* SIDEBAR COMPONENT (DESKTOP & MOBILE) */}
+      <Sidebar mobileOpen={sidebarOpen} setMobileOpen={setSidebarOpen} />
 
-      {/* 2. SIDEBAR DRAWER MOBILE */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)}>
-          <aside className="w-64 bg-[#0f2042] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-250" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-end p-4">
-              <button onClick={() => setSidebarOpen(false)} className="text-white p-1.5 hover:bg-white/5 rounded-lg">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
-
-      {/* 3. MAIN WORKSPACE */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* MAIN WORKSPACE */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f6f9] rounded-[24px] shadow-2xl border border-slate-800/20">
         
         {/* Top Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-all">
-              <Menu className="w-6 h-6" />
+        <header className="h-14 md:h-16 bg-white border-b border-slate-200 px-3 md:px-6 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
+            <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 p-1.5 hover:bg-slate-100 rounded-xl transition-all shrink-0">
+              <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block">
-              Historique des Relevés
+            <h2 className="text-sm md:text-lg font-bold text-[#0f2042] tracking-wide hidden sm:inline-block truncate">
+              Historique
             </h2>
             {stations.length > 0 && (
               <select
                 value={selectedStationId}
                 onChange={(e) => setSelectedStationId(e.target.value)}
-                className="bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
+                className="bg-slate-100 border border-slate-200 rounded-xl px-2 md:px-3 py-1.5 text-[11px] md:text-xs font-bold text-[#0f2042] focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm max-w-[140px] md:max-w-none truncate"
               >
                 {stations.map((st) => (
                   <option key={st.id} value={st.id}>
@@ -404,24 +304,24 @@ export default function HistoryPage() {
               </select>
             )}
           </div>
-          <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-            ● KongoClim Online
+          <div className="text-[10px] md:text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border border-slate-200 shrink-0">
+            KongoClim
           </div>
         </header>
 
         {/* Espace central */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6">
 
           {/* Filtres de sélection de Période */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-[#0f2042] text-sm font-bold">Période d'analyse :</span>
-              <div className="flex gap-2 flex-wrap">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
+              <span className="text-[#0f2042] text-xs md:text-sm font-bold">Période :</span>
+              <div className="flex gap-1.5 md:gap-2 flex-wrap">
                 {periods.map(period => (
                   <button
                     key={period.id}
                     onClick={() => setSelectedPeriod(period.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold transition-all cursor-pointer ${
                       selectedPeriod === period.id
                         ? 'bg-[#0f2042] text-white shadow-md'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -434,38 +334,38 @@ export default function HistoryPage() {
             </div>
 
             {selectedPeriod === 'custom' && (
-              <div className="flex gap-4 items-end flex-wrap mt-4 border-t border-slate-100 pt-4">
-                <div>
-                  <label className="block text-xs text-slate-500 mb-2 font-semibold">Date de début</label>
+              <div className="flex gap-3 md:gap-4 items-end flex-wrap mt-4 border-t border-slate-100 pt-4">
+                <div className="flex-1 min-w-[120px]">
+                  <label className="block text-[11px] md:text-xs text-slate-500 mb-1.5 md:mb-2 font-semibold">Début</label>
                   <input
                     type="date"
                     value={customDateRange.start}
                     onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-slate-800 focus:outline-none focus:border-[#0f2042] text-sm"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2 text-slate-800 focus:outline-none focus:border-[#0f2042] text-sm"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 mb-2 font-semibold">Date de fin</label>
+                <div className="flex-1 min-w-[120px]">
+                  <label className="block text-[11px] md:text-xs text-slate-500 mb-1.5 md:mb-2 font-semibold">Fin</label>
                   <input
                     type="date"
                     value={customDateRange.end}
                     onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-slate-800 focus:outline-none focus:border-[#0f2042] text-sm"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 md:px-4 py-2 text-slate-800 focus:outline-none focus:border-[#0f2042] text-sm"
                   />
                 </div>
                 <button
                   onClick={fetchData}
                   disabled={!customDateRange.start || !customDateRange.end}
-                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed rounded-xl transition-all font-bold text-sm cursor-pointer"
+                  className="px-5 md:px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed rounded-xl transition-all font-bold text-sm cursor-pointer"
                 >
-                  Appliquer
+                  OK
                 </button>
               </div>
             )}
           </div>
 
           {/* Section d'indicateurs de filtres additionnels */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 text-[#0f2042] hover:text-slate-600 transition-colors cursor-pointer text-sm font-bold"
@@ -556,54 +456,54 @@ export default function HistoryPage() {
           </div>
 
           {/* Section d'affichage des graphiques / tableaux */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-6 flex-wrap gap-4 border-b border-slate-100 pb-4">
-              <div className="flex gap-2 flex-wrap">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-slate-100">
+            <div className="flex justify-between items-center mb-4 md:mb-6 flex-wrap gap-3 border-b border-slate-100 pb-3 md:pb-4">
+              <div className="flex gap-1.5 md:gap-2 flex-wrap">
                 <button
                   onClick={() => setViewMode('daily')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold transition-all flex items-center gap-1.5 md:gap-2 cursor-pointer ${
                     viewMode === 'daily' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  <Calendar className="w-4 h-4 text-amber-400" />
-                  Bilan Journalier (WU)
+                  <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-400" />
+                  <span className="hidden sm:inline">Bilan</span> Journalier
                 </button>
                 <button
                   onClick={() => setViewMode('charts')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold transition-all flex items-center gap-1.5 md:gap-2 cursor-pointer ${
                     viewMode === 'charts' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  <BarChart3 className="w-4 h-4" />
+                  <BarChart3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   Graphique
                 </button>
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold transition-all flex items-center gap-1.5 md:gap-2 cursor-pointer ${
                     viewMode === 'table' ? 'bg-[#0f2042] text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  <Table className="w-4 h-4" />
-                  Tableau Brut
+                  <Table className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  Tableau
                 </button>
               </div>
               <div className="flex items-center gap-3">
-                <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                  {viewMode === 'daily' && dailySummary ? `${dailySummary.validCount} / ${dailySummary.totalCount} relevés` : `${data.length} enregistrements`}
+                <div className="text-[10px] md:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 md:px-3 py-1 rounded-full border border-slate-200">
+                  {viewMode === 'daily' && dailySummary ? `${dailySummary.validCount}/${dailySummary.totalCount}` : `${data.length} enreg.`}
                 </div>
               </div>
             </div>
 
             {/* Ingestion & Export options */}
             {(currentRole === 'researcher' || currentRole === 'admin' || currentRole === 'tech') && (
-              <div className="flex justify-end gap-3 mb-6">
-                <button onClick={handleExportJSON} className="flex items-center gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer">
-                  <FileJson className="w-4 h-4 text-amber-400" />
-                  Export JSON {filterParasites ? '(Filtré)' : '(Brut)'}
+              <div className="flex flex-wrap justify-end gap-2 md:gap-3 mb-4 md:mb-6">
+                <button onClick={handleExportJSON} className="flex items-center gap-1.5 md:gap-2 bg-[#0f2042] hover:bg-slate-800 text-white text-[11px] md:text-xs font-semibold px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition-all cursor-pointer">
+                  <FileJson className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-400" />
+                  JSON {filterParasites ? '(F)' : ''}
                 </button>
-                <button onClick={handleExportExcel} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm">
-                  <FileSpreadsheet className="w-4 h-4" />
-                  Export Excel {filterParasites ? '(Filtré)' : '(Brut)'}
+                <button onClick={handleExportExcel} className="flex items-center gap-1.5 md:gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[11px] md:text-xs font-semibold px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition-all cursor-pointer shadow-sm">
+                  <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  Excel {filterParasites ? '(F)' : ''}
                 </button>
               </div>
             )}
@@ -612,23 +512,22 @@ export default function HistoryPage() {
             {viewMode === 'daily' ? (
               <div className="space-y-6">
                 {/* Date Picker & Presets */}
-                <div className="bg-[#f8fafc] p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-[#0f2042]">Sélection de la Journée :</label>
+                <div className="bg-[#f8fafc] p-3 md:p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <label className="text-[11px] md:text-xs font-bold text-[#0f2042] shrink-0">Journée :</label>
                     <input
                       type="date"
                       value={dailyDate}
                       onChange={(e) => setDailyDate(e.target.value)}
-                      className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-semibold text-[#0f2042] focus:outline-none focus:border-[#0f2042]"
+                      className="bg-white border border-slate-300 rounded-xl px-2.5 md:px-3 py-1.5 text-sm font-semibold text-[#0f2042] focus:outline-none focus:border-[#0f2042] w-full sm:w-auto"
                     />
                   </div>
-                  <div className="flex gap-2 flex-wrap text-xs">
-                    <span className="text-slate-500 font-semibold flex items-center">Presets :</span>
+                  <div className="flex gap-1.5 md:gap-2 flex-wrap text-xs overflow-x-auto">
                     {['2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22'].map((d) => (
                       <button
                         key={d}
                         onClick={() => setDailyDate(d)}
-                        className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                        className={`px-2.5 md:px-3 py-1 rounded-lg font-bold transition-all shrink-0 ${
                           dailyDate === d ? 'bg-[#0f2042] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
@@ -647,135 +546,135 @@ export default function HistoryPage() {
                 ) : (
                   <>
                     {/* Header Banner */}
-                    <div className="bg-gradient-to-r from-[#0f2042] to-[#1e3a8a] text-white p-5 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
+                    <div className="bg-gradient-to-r from-[#0f2042] to-[#1e3a8a] text-white p-4 md:p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4">
                       <div>
-                        <h3 className="text-base font-bold flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-amber-400" />
-                          Journée du {dailySummary.date} ({dailySummary.dayName})
+                        <h3 className="text-sm md:text-base font-bold flex items-center gap-2">
+                          <Calendar className="w-4 h-4 md:w-5 md:h-5 text-amber-400" />
+                          {dailySummary.date} ({dailySummary.dayName})
                         </h3>
-                        <p className="text-xs text-slate-300 mt-1">
-                          Station Météo SteAir Pro — {dailySummary.validCount} relevés valides sur {dailySummary.totalCount} mesures totales
+                        <p className="text-[11px] md:text-xs text-slate-300 mt-1">
+                          {dailySummary.validCount} relevés valides / {dailySummary.totalCount} totaux
                         </p>
                       </div>
-                      <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-xs font-semibold">
-                        Biais Thermique Moyen ΔT (BMP vs DHT22) : <span className="text-amber-300 font-bold">{dailySummary.summary.biasDelta !== null ? `+${dailySummary.summary.biasDelta} °C` : 'N/A'}</span>
+                      <div className="bg-white/10 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white/20 text-[11px] md:text-xs font-semibold">
+                        Biais ΔT : <span className="text-amber-300 font-bold">{dailySummary.summary.biasDelta !== null ? `+${dailySummary.summary.biasDelta} °C` : 'N/A'}</span>
                       </div>
                     </div>
 
                     {/* Cards min/max/moyenne des 2 capteurs — Design Pro Météo Clean */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                       {/* Temp BMP280 */}
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                      <div className="bg-white p-3.5 md:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Température BMP280</div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black text-[#0f2042]">
-                              {dailySummary.summary.temperatureBmp.avg !== null ? `${dailySummary.summary.temperatureBmp.avg} °C` : 'N/A'}
+                          <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 md:mb-2">Temp. BMP280</div>
+                          <div className="flex items-baseline gap-1 md:gap-2">
+                            <span className="text-xl md:text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.temperatureBmp.avg !== null ? `${dailySummary.summary.temperatureBmp.avg}` : 'N/A'}
                             </span>
-                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                            <span className="text-[10px] md:text-xs font-semibold text-slate-400">°C</span>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
-                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.min ?? '-'} °C</strong></div>
-                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.max ?? '-'} °C</strong></div>
+                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-[10px] md:text-xs font-medium text-slate-600 mt-3 md:mt-4 pt-2 md:pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.min ?? '-'}</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureBmp.max ?? '-'}</strong></div>
                         </div>
                       </div>
 
                       {/* Temp DHT22 */}
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                      <div className="bg-white p-3.5 md:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Température DHT22</div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black text-[#0f2042]">
-                              {dailySummary.summary.temperatureDht22.avg !== null ? `${dailySummary.summary.temperatureDht22.avg} °C` : 'N/A'}
+                          <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 md:mb-2">Temp. DHT22</div>
+                          <div className="flex items-baseline gap-1 md:gap-2">
+                            <span className="text-xl md:text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.temperatureDht22.avg !== null ? `${dailySummary.summary.temperatureDht22.avg}` : 'N/A'}
                             </span>
-                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                            <span className="text-[10px] md:text-xs font-semibold text-slate-400">°C</span>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
-                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.min ?? '-'} °C</strong></div>
-                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.max ?? '-'} °C</strong></div>
+                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-[10px] md:text-xs font-medium text-slate-600 mt-3 md:mt-4 pt-2 md:pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.min ?? '-'}</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.temperatureDht22.max ?? '-'}</strong></div>
                         </div>
                       </div>
 
                       {/* Humidité DHT22 */}
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                      <div className="bg-white p-3.5 md:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Humidité DHT22</div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black text-[#0f2042]">
-                              {dailySummary.summary.humidityDht22.avg !== null ? `${dailySummary.summary.humidityDht22.avg} %` : 'N/A'}
+                          <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 md:mb-2">Hum. DHT22</div>
+                          <div className="flex items-baseline gap-1 md:gap-2">
+                            <span className="text-xl md:text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.humidityDht22.avg !== null ? `${dailySummary.summary.humidityDht22.avg}` : 'N/A'}
                             </span>
-                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                            <span className="text-[10px] md:text-xs font-semibold text-slate-400">%</span>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
-                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.min ?? '-'} %</strong></div>
-                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.max ?? '-'} %</strong></div>
+                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-[10px] md:text-xs font-medium text-slate-600 mt-3 md:mt-4 pt-2 md:pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.min ?? '-'}</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.humidityDht22.max ?? '-'}</strong></div>
                         </div>
                       </div>
 
                       {/* Pression BMP280 */}
-                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                      <div className="bg-white p-3.5 md:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                         <div>
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Pression BMP280</div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black text-[#0f2042]">
-                              {dailySummary.summary.pressureBmp.avg !== null ? `${dailySummary.summary.pressureBmp.avg} hPa` : 'N/A'}
+                          <div className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 md:mb-2">Pression BMP</div>
+                          <div className="flex items-baseline gap-1 md:gap-2">
+                            <span className="text-xl md:text-2xl font-black text-[#0f2042]">
+                              {dailySummary.summary.pressureBmp.avg !== null ? `${dailySummary.summary.pressureBmp.avg}` : 'N/A'}
                             </span>
-                            <span className="text-xs font-semibold text-slate-400">(Moy)</span>
+                            <span className="text-[10px] md:text-xs font-semibold text-slate-400">hPa</span>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 mt-4 pt-3 border-t border-slate-100">
-                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.min ?? '-'} hPa</strong></div>
-                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.max ?? '-'} hPa</strong></div>
+                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-[10px] md:text-xs font-medium text-slate-600 mt-3 md:mt-4 pt-2 md:pt-3 border-t border-slate-100">
+                          <div>Min: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.min ?? '-'}</strong></div>
+                          <div>Max: <strong className="text-slate-900 font-bold">{dailySummary.summary.pressureBmp.max ?? '-'}</strong></div>
                         </div>
                       </div>
                     </div>
 
                     {/* Detailed Hourly Table */}
-                    <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
-                      <table className="w-full text-xs text-left">
+                    <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-xs -mx-1 md:mx-0">
+                      <table className="w-full text-[10px] md:text-xs text-left min-w-[640px]">
                         <thead className="uppercase bg-[#0f2042] text-white">
                           <tr>
-                            <th className="px-4 py-3 font-semibold">Heure</th>
-                            <th className="px-4 py-3 font-semibold">Temp. BMP280 (°C)</th>
-                            <th className="px-4 py-3 font-semibold">Temp. DHT22 (°C)</th>
-                            <th className="px-4 py-3 font-semibold">Écart ΔT (°C)</th>
-                            <th className="px-4 py-3 font-semibold">Humidité DHT22 (%)</th>
-                            <th className="px-4 py-3 font-semibold">Pression BMP280 (hPa)</th>
-                            <th className="px-4 py-3 font-semibold">État Pluie</th>
-                            <th className="px-4 py-3 font-semibold">Statut</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">Heure</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">T.BMP (°C)</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">T.DHT (°C)</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">ΔT (°C)</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">Hum. (%)</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">P (hPa)</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">Pluie</th>
+                            <th className="px-2.5 md:px-4 py-2.5 md:py-3 font-semibold">Statut</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 bg-white">
                           {dailySummary.observations.map((obs) => (
                             <tr key={obs.id} className={`hover:bg-slate-50 transition-colors ${obs.isParasite ? 'bg-amber-50/40' : ''}`}>
-                              <td className="px-4 py-3 font-mono font-bold text-slate-700">{obs.heure}</td>
-                              <td className="px-4 py-3 font-bold text-amber-700">{obs.temperatureBmp !== null ? `${obs.temperatureBmp.toFixed(1)} °C` : '-'}</td>
-                              <td className="px-4 py-3 font-bold text-sky-700">{obs.temperatureDht22 !== null ? `${obs.temperatureDht22.toFixed(1)} °C` : '-'}</td>
-                              <td className="px-4 py-3 font-semibold text-slate-600">
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 font-mono font-bold text-slate-700">{obs.heure}</td>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 font-bold text-amber-700">{obs.temperatureBmp !== null ? `${obs.temperatureBmp.toFixed(1)}` : '-'}</td>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 font-bold text-sky-700">{obs.temperatureDht22 !== null ? `${obs.temperatureDht22.toFixed(1)}` : '-'}</td>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 font-semibold text-slate-600">
                                 {obs.deltaTemp !== null ? (
                                   <span className={obs.deltaTemp > 2 ? 'text-rose-600 font-bold' : 'text-slate-600'}>
-                                    {obs.deltaTemp > 0 ? `+${obs.deltaTemp}` : obs.deltaTemp} °C
+                                    {obs.deltaTemp > 0 ? `+${obs.deltaTemp}` : obs.deltaTemp}
                                   </span>
                                 ) : '-'}
                               </td>
-                              <td className="px-4 py-3 font-semibold text-emerald-700">{obs.humidityDht22 !== null ? `${obs.humidityDht22.toFixed(0)} %` : '-'}</td>
-                              <td className="px-4 py-3 text-indigo-900 font-mono">{obs.pressureBmp !== null ? `${obs.pressureBmp.toFixed(2)} hPa` : '-'}</td>
-                              <td className="px-4 py-3">
-                                <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${obs.rain ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 font-semibold text-emerald-700">{obs.humidityDht22 !== null ? `${obs.humidityDht22.toFixed(0)}` : '-'}</td>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3 text-indigo-900 font-mono">{obs.pressureBmp !== null ? `${obs.pressureBmp.toFixed(1)}` : '-'}</td>
+                              <td className="px-2.5 md:px-4 py-2 md:py-3">
+                                <span className={`px-2 md:px-2.5 py-0.5 rounded-md text-[10px] md:text-[11px] font-bold ${obs.rain ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
                                   {obs.rain ? 'Pluie' : 'Sec'}
                                 </span>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-2.5 md:px-4 py-2 md:py-3">
                                 {obs.isParasite ? (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                    Parasite / Init
+                                  <span className="px-1.5 md:px-2 py-0.5 rounded-md text-[9px] md:text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    Init
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    Valide
+                                  <span className="px-1.5 md:px-2 py-0.5 rounded-md text-[9px] md:text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    OK
                                   </span>
                                 )}
                               </td>
@@ -814,40 +713,40 @@ export default function HistoryPage() {
               </div>
             ) : (
               /* Vue Tableau */
-              <div className="overflow-x-auto border border-slate-100 rounded-xl">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-[#0f2042] text-white">
+              <div className="overflow-x-auto border border-slate-100 rounded-xl -mx-1 md:mx-0">
+                <table className="w-full text-xs md:text-sm text-left min-w-[480px]">
+                  <thead className="text-[10px] md:text-xs uppercase bg-[#0f2042] text-white">
                     <tr>
-                      <th className="px-6 py-4 font-semibold">Date & Heure</th>
-                      <th className="px-6 py-4 font-semibold">Temp.</th>
-                      <th className="px-6 py-4 font-semibold">Humidité</th>
-                      <th className="px-6 py-4 font-semibold">Pression</th>
-                      <th className="px-6 py-4 font-semibold">Alerte</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Date & Heure</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Temp.</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Hum.</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Pression</th>
+                      <th className="px-3 md:px-6 py-3 md:py-4 font-semibold">Alerte</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {paginatedData.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-slate-400 font-medium">
+                        <td colSpan="5" className="px-3 md:px-6 py-8 text-center text-slate-400 font-medium">
                           Aucune donnée trouvée.
                         </td>
                       </tr>
                     ) : (
                       paginatedData.map((measure) => (
                         <tr key={measure.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-slate-500 font-mono">
+                          <td className="px-3 md:px-6 py-3 md:py-4 text-slate-500 font-mono text-[11px] md:text-sm">
                             {new Date(measure.timestamp).toLocaleString('fr-FR')}
                           </td>
-                          <td className="px-6 py-4 font-bold text-[#0f2042]">{measure.temperature.toFixed(1)}°C</td>
-                          <td className="px-6 py-4 font-semibold text-slate-700">{measure.humidity.toFixed(0)}%</td>
-                          <td className="px-6 py-4 text-slate-600">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          <td className="px-3 md:px-6 py-3 md:py-4 font-bold text-[#0f2042]">{measure.temperature.toFixed(1)}°C</td>
+                          <td className="px-3 md:px-6 py-3 md:py-4 font-semibold text-slate-700">{measure.humidity.toFixed(0)}%</td>
+                          <td className="px-3 md:px-6 py-3 md:py-4 text-slate-600">{measure.pressure ? `${measure.pressure.toFixed(0)} hPa` : '-'}</td>
+                          <td className="px-3 md:px-6 py-3 md:py-4">
+                            <span className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded-lg text-[10px] md:text-xs font-bold ${
                               measure.alertActive 
                                 ? 'bg-rose-100 text-rose-700' 
                                 : 'bg-slate-100 text-slate-600'
                             }`}>
-                              {measure.alertActive ? 'ALERTE' : 'NORMAL'}
+                              {measure.alertActive ? 'ALERTE' : 'OK'}
                             </span>
                           </td>
                         </tr>

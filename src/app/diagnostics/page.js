@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../../hooks/useToast';
 import { ToastContainer } from '../../components/Toast';
+import Sidebar from '../../components/Sidebar';
 
 export default function DiagnosticsPage() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -188,101 +189,15 @@ export default function DiagnosticsPage() {
     return <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Avertissement</span>;
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full text-white">
-      <div className="p-6 border-b border-slate-750 flex flex-col items-center text-center">
-        <div className="w-20 h-20 bg-slate-700/50 rounded-full border-2 border-indigo-400/30 flex items-center justify-center mb-4 overflow-hidden relative shadow-inner">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold text-xl uppercase">
-            {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'GP')}
-          </div>
-        </div>
-        <h3 className="font-bold text-lg tracking-wide uppercase truncate max-w-full">
-          {user?.name || user?.email || 'Visiteur'}
-        </h3>
-        <span className="text-xs text-slate-400 truncate max-w-full mb-2">
-          {user?.email || 'Lecteur public'}
-        </span>
-        <span className="text-[10px] uppercase font-bold tracking-widest bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
-          {currentRole === 'admin' ? 'SuperAdmin' : 'Technicien'}
-        </span>
-      </div>
-
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        <Link href="/" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Home className="w-4 h-4 text-indigo-400" />
-          Carte Réseau
-        </Link>
-        <Link href="/dashboard" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Activity className="w-4 h-4 text-indigo-400" />
-          Dashboard
-        </Link>
-        <Link href="/history" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <FileText className="w-4 h-4 text-indigo-400" />
-          Historique
-        </Link>
-        {user && (user.role === 'admin' || user.role === 'tech' || user.role === 'researcher') && (
-          <Link href="/analysis" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
-            Analyse Climatique
-          </Link>
-        )}
-
-        <button onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-white/10 text-white transition-all text-sm font-semibold text-left">
-          <Signal className="w-4 h-4 text-indigo-400" />
-          Santé & Alertes
-        </button>
-        <Link href="/maintenance" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <Cpu className="w-4 h-4 text-indigo-400" />
-          Maintenance
-        </Link>
-
-        {user && user.role === 'admin' && (
-          <Link href="/supervision" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-            <Compass className="w-4 h-4 text-indigo-400" />
-            Supervision
-          </Link>
-        )}
-
-        <Link href="/interpretation" className="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-all text-sm font-medium">
-          <MessageSquare className="w-4 h-4 text-indigo-400" />
-          Interprétation
-        </Link>
-      </nav>
-
-      <div className="p-4 border-t border-slate-750">
-        <button onClick={logout} className="w-full flex items-center justify-center gap-3 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/25 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer">
-          <LogOut className="w-4 h-4" />
-          Déconnexion
-        </button>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="fixed inset-0 z-[100] flex bg-[#f4f6f9] text-slate-800 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex bg-[#090b14] text-slate-800 font-sans overflow-hidden p-2 md:p-3 gap-2 md:gap-3">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
-      {/* 1. SIDEBAR DESKTOP */}
-      <aside className="w-64 bg-[#0f2042] border-r border-slate-750 shrink-0 md:flex flex-col hidden shadow-2xl">
-        <SidebarContent />
-      </aside>
+      {/* SIDEBAR COMPONENT (DESKTOP & MOBILE) */}
+      <Sidebar mobileOpen={sidebarOpen} setMobileOpen={setSidebarOpen} />
 
-      {/* 2. SIDEBAR DRAWER MOBILE */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)}>
-          <aside className="w-64 bg-[#0f2042] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-250" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-end p-4">
-              <button onClick={() => setSidebarOpen(false)} className="text-white p-1.5 hover:bg-white/5 rounded-lg">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
-
-      {/* 3. MAIN WORKSPACE */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* MAIN WORKSPACE */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f6f9] rounded-[24px] shadow-2xl border border-slate-800/20">
         
         {/* Top Header Bar */}
         <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-sm">
