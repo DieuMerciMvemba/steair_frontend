@@ -8,14 +8,39 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Intercepteur global Axios pour intercepter les HTTP 401 (token expiré ou invalide)
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          console.warn('[useAuth] Session 401 détectée - Nettoyage du jeton expiré');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+          setUser(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      // Configurer axios pour envoyer le token par défaut
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      try {
+        setUser(JSON.parse(savedUser));
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+        setUser(null);
+      }
     }
     setLoading(false);
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   const login = async (email, password) => {

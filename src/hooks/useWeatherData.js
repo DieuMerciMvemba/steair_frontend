@@ -34,17 +34,20 @@ export function useWeatherData(stationId) {
       return;
     }
 
-    if (!axios.defaults.headers.common['Authorization']) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
+    // Toujours s'assurer que l'en-tête Authorization d'Axios est à jour avec le jeton actuel
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const reqConfig = {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 8000
+    };
 
     try {
       const buster = Date.now();
       const stParam = stationId ? `&stationId=${stationId}` : '';
       const [realtime, history, stats] = await Promise.all([
-        axios.get(`/api/realtime?_cb=${buster}${stParam}`, { timeout: 8000 }),
-        axios.get(`/api/history?limit=100&_cb=${buster}${stParam}`, { timeout: 8000 }),
-        axios.get(`/api/stats?_cb=${buster}${stParam}`, { timeout: 8000 })
+        axios.get(`/api/realtime?_cb=${buster}${stParam}`, reqConfig),
+        axios.get(`/api/history?limit=100&_cb=${buster}${stParam}`, reqConfig),
+        axios.get(`/api/stats?_cb=${buster}${stParam}`, reqConfig)
       ])
 
       if (!mountedRef.current) return
@@ -64,6 +67,13 @@ export function useWeatherData(stationId) {
       if (!mountedRef.current) return
 
       const status = err.response?.status
+
+      if (status === 401) {
+        // En cas de 401 (non autorisé / token expiré), interrompre le rafraîchissement automatique
+        setError('Session expirée (401) — Veuillez vous reconnecter');
+        setLoading(false);
+        return; // Ne pas re-planifier le polling inutilement avec un token expiré
+      }
 
       if (status === 429) {
         // Backoff exponentiel : double à chaque 429, cap à 120s
